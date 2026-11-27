@@ -146,7 +146,7 @@
         </div>
         <div>
           <div class="flex items-center gap-2">
-            <span id="nav-brand-name" class="font-bold text-base sm:text-lg tracking-tight leading-none">MedCore POS</span>
+            <span id="nav-brand-name" class="font-bold text-base sm:text-lg tracking-tight leading-none">Medical Supplies</span>
             <!-- <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-medteal-600/30 text-medteal-100 border border-medteal-500/40">PRO v1.0</span> -->
           </div>
           <p class="text-[11px] text-slate-300 mt-0.5 hidden sm:block">Medical Supplies </p>
@@ -398,14 +398,14 @@
 
       getSettings() {
         return this.read(this.KEYS.SETTINGS, {
-          brandName: 'MedCore Medical Supplies',
+          brandName: 'Medical Supplies',
           tagline: 'Certified Clinical & Pharmacy Distribution',
           phone: '+20 100 555 0192',
-          address: '42 El-Gomhouria Medical Plaza, Cairo, Egypt',
-          taxId: 'TRN-409-882-110',
+          address: 'Cairo, Egypt',
+          taxId: 'EG-409-882-110',
           currency: 'EGP',
           defaultShipping: 0,
-          receiptFooter: 'Thank you for trusting MedCore Medical Supplies. Sterile items cannot be returned once opened.',
+          receiptFooter: 'Thank you for trusting Medical Supplies. Sterile items cannot be returned once opened.',
         });
       },
       saveSettings(settings) { return this.write(this.KEYS.SETTINGS, settings); },
@@ -3730,7 +3730,7 @@
         });
 
         document.getElementById('btn-export-json').addEventListener('click', () => {
-          this.downloadFile(StorageService.exportAllJSON(), `medcore-pos-backup-${Utils.todayISO()}.json`, 'application/json');
+          this.downloadFile(StorageService.exportAllJSON(), `Medical-pos-backup-${Utils.todayISO()}.json`, 'application/json');
         });
 
         document.getElementById('input-import-json').addEventListener('change', (e) => {
@@ -3755,7 +3755,7 @@
             ID: p.id, Name: p.name, SKU: p.sku, Barcode: p.barcode, Category: p.category,
             PurchasePrice: p.purchasePrice, SellingPrice: p.sellingPrice, Quantity: p.quantity, MinStock: p.minStock, ExpiryDate: p.expiryDate
           }));
-          this.downloadCSV(rows, `medcore-products-${Utils.todayISO()}.csv`);
+          this.downloadCSV(rows, `Medical-products-${Utils.todayISO()}.csv`);
         });
 
         document.getElementById('btn-export-sales-csv').addEventListener('click', () => {
@@ -3763,14 +3763,14 @@
             SaleID: s.id, Date: s.createdAt, Customer: s.customerName, Subtotal: s.subtotal,
             Discount: s.discount, Shipping: s.shipping, GrandTotal: s.grandTotal, PaymentMethod: s.paymentMethod, Paid: s.paidAmount, Balance: s.remainingBalance, Status: s.status
           }));
-          this.downloadCSV(rows, `medcore-sales-${Utils.todayISO()}.csv`);
+          this.downloadCSV(rows, `Medical-sales-${Utils.todayISO()}.csv`);
         });
 
         document.getElementById('btn-export-inventory-csv').addEventListener('click', () => {
           const rows = StorageService.getInventoryMovements().map((m) => ({
             MovementID: m.id, Date: m.date, Product: m.productName, SKU: m.sku, Type: m.type, Batch: m.batchNumber, PrevQty: m.previousQty, NewQty: m.newQty, Reason: m.reason
           }));
-          this.downloadCSV(rows, `medcore-inventory-${Utils.todayISO()}.csv`);
+          this.downloadCSV(rows, `Medical-inventory-${Utils.todayISO()}.csv`);
         });
 
         document.getElementById('btn-reset-demo').addEventListener('click', () => {
