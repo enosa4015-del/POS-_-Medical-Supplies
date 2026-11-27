@@ -1,0 +1,3957 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Medical Supplies </title>
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          },
+          colors: {
+            navy: {
+              900: '#091A2B',
+              800: '#0F2942',
+              700: '#163A5F',
+              600: '#1E4C7A',
+            },
+            medblue: {
+              600: '#1D63B8',
+              500: '#2574D4',
+              100: '#E8F1FC',
+              50: '#F3F8FE',
+            },
+            medteal: {
+              600: '#0D9488',
+              500: '#14B8A6',
+              100: '#CCFBF1',
+              50: '#F0FDFA',
+            },
+            surface: '#F4F7FA',
+          },
+          boxShadow: {
+            card: '0 1px 3px 0 rgba(15, 41, 66, 0.06), 0 1px 2px -1px rgba(15, 41, 66, 0.04)',
+            elevated: '0 10px 25px -5px rgba(15, 41, 66, 0.1), 0 8px 10px -6px rgba(15, 41, 66, 0.05)',
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    :root {
+      --primary: #0F2942;
+      --secondary: #1D63B8;
+      --accent: #0D9488;
+      --bg-surface: #F4F7FA;
+      --border-subtle: #E2E8F0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: var(--bg-surface);
+      color: #0F2942;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .tabular-nums {
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Custom clean scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+
+    /* Barcode scan pulse animation */
+    @keyframes scanFlash {
+      0% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(13, 148, 136, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(13, 148, 136, 0); }
+    }
+    .scan-success {
+      animation: scanFlash 0.6s ease-out;
+      border-color: #0D9488 !important;
+    }
+
+    /* Modal Backdrop Fade */
+    .modal-backdrop {
+      background-color: rgba(9, 26, 43, 0.55);
+      backdrop-filter: blur(2px);
+    }
+
+    /* Dedicated Thermal / A4 Print Styles */
+    @media print {
+      body * {
+        visibility: hidden !important;
+      }
+      #print-area,
+      #print-area * {
+        visibility: visible !important;
+      }
+      #print-area {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        max-width: 80mm !important;
+        margin: 0 auto !important;
+        padding: 8mm 4mm !important;
+        background: #FFFFFF !important;
+        color: #000000 !important;
+        box-shadow: none !important;
+        border: none !important;
+        z-index: 99999 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col overflow-x-hidden">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="bg-navy-800 text-white sticky top-0 z-30 shadow-md no-print">
+    <div class="max-w-[1600px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-3">
+      <!-- Brand Identity -->
+      <div class="flex items-center gap-3 shrink-0">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-medteal-500 to-medblue-600 flex items-center justify-center shadow-inner">
+          <i data-lucide="cross" class="w-6 h-6 text-white stroke-[2.5]"></i>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span id="nav-brand-name" class="font-bold text-base sm:text-lg tracking-tight leading-none">MedCore POS</span>
+            <!-- <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold bg-medteal-600/30 text-medteal-100 border border-medteal-500/40">PRO v1.0</span> -->
+          </div>
+          <p class="text-[11px] text-slate-300 mt-0.5 hidden sm:block">Medical Supplies </p>
+        </div>
+      </div>
+
+      <!-- Primary Module Navigation -->
+      <nav id="main-nav" class="flex items-center gap-1 overflow-x-auto py-1 no-scrollbar">
+        <button data-route="pos" class="nav-btn active flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">
+          <i data-lucide="monitor-smartphone" class="w-4 h-4"></i>
+          <span>POS Terminal</span>
+        </button>
+        <button data-route="products" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">
+          <i data-lucide="package" class="w-4 h-4"></i>
+          <span>Products</span>
+        </button>
+        <button data-route="inventory" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">
+          <i data-lucide="boxes" class="w-4 h-4"></i>
+          <span>Inventory</span>
+          <span id="nav-low-stock-badge" class="hidden px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-amber-500 text-navy-900 tabular-nums">0</span>
+        </button>
+        <button data-route="customers" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">
+          <i data-lucide="users" class="w-4 h-4"></i>
+          <span>Customers</span>
+        </button>
+        <button data-route="sales" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">
+          <i data-lucide="receipt" class="w-4 h-4"></i>
+          <span>Sales &amp; Returns</span>
+        </button>
+        <button data-route="reports" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">
+          <i data-lucide="bar-chart-3" class="w-4 h-4"></i>
+          <span>Dashboard</span>
+        </button>
+        <button data-route="settings" class="nav-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium transition-all whitespace-nowrap">
+          <i data-lucide="settings" class="w-4 h-4"></i>
+          <span>Settings</span>
+        </button>
+      </nav>
+
+      <!-- Live Status & Clock -->
+      <div class="hidden xl:flex items-center gap-3 shrink-0 text-xs text-slate-300">
+        <!-- <div class="flex items-center gap-1.5 bg-navy-900/70 px-3 py-1.5 rounded-xl border border-slate-700/70">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>Local-First Ready</span>
+        </div> -->
+        <div id="live-clock" class="tabular-nums font-medium text-slate-200"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none no-print"></div>
+
+  <!-- MAIN APPLICATION CONTAINER -->
+  <main id="app-root" class="flex-1 max-w-[1600px] w-full mx-auto px-3 sm:px-6 py-4 sm:py-5 no-print">
+    <!-- Dynamic Views Injected Here -->
+  </main>
+
+  <!-- MODAL ROOT -->
+  <div id="modal-root" class="fixed inset-0 z-40 hidden items-center justify-center p-4 modal-backdrop no-print">
+    <div id="modal-content" class="bg-white rounded-2xl shadow-elevated border border-slate-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto transform transition-all"></div>
+  </div>
+
+  <!-- HIDDEN PRINT AREA FOR THERMAL / A4 RECEIPTS -->
+  <div id="print-area" class="hidden print:block"></div>
+
+  <!-- ===================================================================== -->
+  <!-- MODULAR ES6+ APPLICATION ARCHITECTURE                                 -->
+  <!-- Ready for seamless Laravel + MySQL REST API replacement               -->
+  <!-- ===================================================================== -->
+  <script>
+    'use strict';
+
+    /**
+     * =========================================================================
+     * 1. UTILITIES & FORMATTERS (Utils)
+     * =========================================================================
+     */
+    const Utils = {
+      generateId(prefix = 'ID') {
+        const ts = Date.now().toString(36).toUpperCase();
+        const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return `${prefix}-${ts}-${rand}`;
+      },
+
+      escapeHTML(str) {
+        if (str === null || str === undefined) return '';
+        return String(str)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      },
+
+      formatCurrency(amount, currencySymbol = null) {
+        const symbol = currencySymbol || StorageService.getSettings().currency || 'EGP';
+        const num = Number(amount) || 0;
+        return `${symbol} ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+      },
+
+      formatDate(isoString, includeTime = true) {
+        if (!isoString) return '—';
+        const d = new Date(isoString);
+        if (isNaN(d.getTime())) return isoString;
+        const opts = { year: 'numeric', month: 'short', day: '2-digit' };
+        if (includeTime) {
+          opts.hour = '2-digit';
+          opts.minute = '2-digit';
+        }
+        return d.toLocaleDateString('en-US', opts);
+      },
+
+      todayISO() {
+        return new Date().toISOString().split('T')[0];
+      },
+
+      daysUntil(dateStr) {
+        if (!dateStr) return 9999;
+        const target = new Date(dateStr);
+        const now = new Date();
+        now.setHours(0, 0, 0, 0);
+        return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+      },
+
+      showToast(message, type = 'info') {
+        const container = document.getElementById('toast-container');
+        if (!container) return;
+        const colors = {
+          success: 'bg-navy-800 border-medteal-500 text-white',
+          error: 'bg-red-900 border-red-400 text-white',
+          warning: 'bg-amber-900 border-amber-400 text-white',
+          info: 'bg-navy-800 border-medblue-500 text-white',
+        };
+        const icons = {
+          success: 'check-circle-2',
+          error: 'alert-circle',
+          warning: 'alert-triangle',
+          info: 'info',
+        };
+        const toast = document.createElement('div');
+        toast.className = `pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl border-l-4 shadow-elevated text-sm font-medium transition-all duration-300 ${colors[type] || colors.info}`;
+        toast.innerHTML = `
+          <i data-lucide="${icons[type] || 'info'}" class="w-5 h-5 shrink-0"></i>
+          <span class="flex-1">${this.escapeHTML(message)}</span>
+        `;
+        container.appendChild(toast);
+        if (window.lucide) lucide.createIcons({ nodes: [toast] });
+        setTimeout(() => {
+          toast.style.opacity = '0';
+          toast.style.transform = 'translateY(8px)';
+          setTimeout(() => toast.remove(), 300);
+        }, 3200);
+      },
+
+      playBeep(freq = 880, duration = 0.08) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.08, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.start();
+          osc.stop(ctx.currentTime + duration);
+        } catch (e) {
+          // AudioContext may require user interaction first
+        }
+      },
+
+      getMedicalThumbnailSVG(iconType = 'device', accent = '#1D63B8') {
+        const icons = {
+          monitor: `<rect x="14" y="14" width="36" height="28" rx="4" fill="${accent}" opacity="0.15" stroke="${accent}" stroke-width="2.5"/><path d="M20 28h5l3-6 4 12 3-6h7" stroke="${accent}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M24 48h16M32 42v6" stroke="${accent}" stroke-width="2.5" stroke-linecap="round"/>`,
+          mask: `<path d="M16 24c0-4 7-6 16-6s16 2 16 6v12c0 6-7 10-16 10s-16-4-16-10V24z" fill="#0D9488" opacity="0.15" stroke="#0D9488" stroke-width="2.5"/><path d="M16 26c-4 0-6 2-6 5s2 5 6 5M48 26c4 0 6 2 6 5s-2 5-6 5" stroke="#0D9488" stroke-width="2" fill="none"/><path d="M22 28h20M22 34h20" stroke="#0D9488" stroke-width="2" stroke-linecap="round"/>`,
+          gloves: `<path d="M24 14v14M30 12v16M36 14v14M42 18v14c0 8-5 14-12 14h-4c-6 0-10-4-10-10v-8c0-2 2-4 4-4s4 2 4 4v2" stroke="#1D63B8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="#1D63B8" fill-opacity="0.12"/>`,
+          syringe: `<path d="M42 14l8 8M46 18l-6 6M22 34l14-14 8 8-14 14-8-8zM14 50l8-8M27 29l4 4M31 25l4 4" stroke="#0D9488" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" fill="#0D9488" fill-opacity="0.12"/>`,
+          kit: `<rect x="14" y="20" width="36" height="28" rx="5" fill="#DC2626" opacity="0.12" stroke="#DC2626" stroke-width="2.5"/><path d="M26 20v-4a2 2 0 012-2h8a2 2 0 012 2v4M32 28v12M26 34h12" stroke="#DC2626" stroke-width="2.5" stroke-linecap="round"/>`,
+          thermometer: `<path d="M36 14a4 4 0 015.6 5.6L26 35.2a6 6 0 11-5.6-5.6L36 14z" fill="#1D63B8" opacity="0.15" stroke="#1D63B8" stroke-width="2.5"/><circle cx="22" cy="38" r="2.5" fill="#1D63B8"/>`,
+          default: `<rect x="16" y="16" width="32" height="32" rx="8" fill="${accent}" opacity="0.14" stroke="${accent}" stroke-width="2.5"/><path d="M32 24v16M24 32h16" stroke="${accent}" stroke-width="2.5" stroke-linecap="round"/>`,
+        };
+        return `<svg viewBox="0 0 64 64" class="w-full h-full" xmlns="http://www.w3.org/2000/svg">${icons[iconType] || icons.default}</svg>`;
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 2. CENTRALIZED LOCALSTORAGE LAYER (StorageService)
+     * Exact keys mandated:
+     * - medical_pos_products
+     * - medical_pos_customers
+     * - medical_pos_sales
+     * - medical_pos_inventory
+     * - medical_pos_returns
+     * - medical_pos_settings
+     * =========================================================================
+     */
+    const StorageService = {
+      KEYS: {
+        PRODUCTS: 'medical_pos_products',
+        CUSTOMERS: 'medical_pos_customers',
+        SALES: 'medical_pos_sales',
+        INVENTORY: 'medical_pos_inventory',
+        RETURNS: 'medical_pos_returns',
+        SETTINGS: 'medical_pos_settings',
+        VERSION: 'medical_pos_schema_version',
+      },
+      SCHEMA_VERSION: '1.0.0',
+
+      read(key, fallback = []) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) return fallback;
+          return JSON.parse(raw);
+        } catch (err) {
+          console.error(`Storage read error [${key}]:`, err);
+          return fallback;
+        }
+      },
+
+      write(key, value) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+          return true;
+        } catch (err) {
+          console.error(`Storage write error [${key}]:`, err);
+          Utils.showToast('Storage quota exceeded or unavailable.', 'error');
+          return false;
+        }
+      },
+
+      // Entity Accessors (Mirroring REST endpoints for future Laravel API swap)
+      getProducts() { return this.read(this.KEYS.PRODUCTS, []); },
+      saveProducts(list) { return this.write(this.KEYS.PRODUCTS, list); },
+
+      getCustomers() { return this.read(this.KEYS.CUSTOMERS, []); },
+      saveCustomers(list) { return this.write(this.KEYS.CUSTOMERS, list); },
+
+      getSales() { return this.read(this.KEYS.SALES, []); },
+      saveSales(list) { return this.write(this.KEYS.SALES, list); },
+
+      getInventoryMovements() { return this.read(this.KEYS.INVENTORY, []); },
+      saveInventoryMovements(list) { return this.write(this.KEYS.INVENTORY, list); },
+
+      getReturns() { return this.read(this.KEYS.RETURNS, []); },
+      saveReturns(list) { return this.write(this.KEYS.RETURNS, list); },
+
+      getSettings() {
+        return this.read(this.KEYS.SETTINGS, {
+          brandName: 'MedCore Medical Supplies',
+          tagline: 'Certified Clinical & Pharmacy Distribution',
+          phone: '+20 100 555 0192',
+          address: '42 El-Gomhouria Medical Plaza, Cairo, Egypt',
+          taxId: 'TRN-409-882-110',
+          currency: 'EGP',
+          defaultShipping: 0,
+          receiptFooter: 'Thank you for trusting MedCore Medical Supplies. Sterile items cannot be returned once opened.',
+        });
+      },
+      saveSettings(settings) { return this.write(this.KEYS.SETTINGS, settings); },
+
+      initSeedData(force = false) {
+        const existingProducts = this.getProducts();
+        if (!force && existingProducts.length > 0) return;
+
+        const now = new Date();
+        const addDays = (days) => {
+          const d = new Date(now);
+          d.setDate(d.getDate() + days);
+          return d.toISOString().split('T')[0];
+        };
+        const subDays = (days) => {
+          const d = new Date(now);
+          d.setDate(d.getDate() - days);
+          return d.toISOString();
+        };
+
+        // 1. Seed Products with Batches & Expiry Dates
+        const seedProducts = [
+          {
+            id: 'PRD-1001',
+            name: 'Digital Blood Pressure Monitor',
+            sku: 'MED-BPM-01',
+            barcode: '622100100101',
+            category: 'Diagnostics',
+            description: 'Upper arm automatic sphygmomanometer with arrhythmia detector and large LCD.',
+            purchasePrice: 620,
+            sellingPrice: 890,
+            quantity: 28,
+            minStock: 8,
+            unit: 'Unit',
+            imageIcon: 'monitor',
+            expiryDate: addDays(720),
+            batches: [
+              { batchNumber: 'BCH-2026A', quantity: 18, expiryDate: addDays(720) },
+              { batchNumber: 'BCH-2026B', quantity: 10, expiryDate: addDays(900) }
+            ],
+            createdAt: subDays(30),
+          },
+          {
+            id: 'PRD-1002',
+            name: 'N95 Particulate Respirator Box (20ct)',
+            sku: 'PPE-N95-20',
+            barcode: '622100100102',
+            category: 'PPE & Protection',
+            description: 'NIOSH-approved 5-layer medical grade N95 masks, individually sealed.',
+            purchasePrice: 180,
+            sellingPrice: 275,
+            quantity: 65,
+            minStock: 15,
+            unit: 'Box',
+            imageIcon: 'mask',
+            expiryDate: addDays(340),
+            batches: [
+              { batchNumber: 'N95-881', quantity: 25, expiryDate: addDays(340) },
+              { batchNumber: 'N95-904', quantity: 40, expiryDate: addDays(540) }
+            ],
+            createdAt: subDays(28),
+          },
+          {
+            id: 'PRD-1003',
+            name: 'Sterile Latex Surgical Gloves (50 Pairs)',
+            sku: 'PPE-GLV-50',
+            barcode: '622100100103',
+            category: 'PPE & Protection',
+            description: 'Powder-free micro-textured sterile surgical gloves, Size 7.5.',
+            purchasePrice: 240,
+            sellingPrice: 350,
+            quantity: 9,
+            minStock: 12,
+            unit: 'Box',
+            imageIcon: 'gloves',
+            expiryDate: addDays(190),
+            batches: [
+              { batchNumber: 'GLV-412', quantity: 9, expiryDate: addDays(190) }
+            ],
+            createdAt: subDays(25),
+          },
+          {
+            id: 'PRD-1004',
+            name: 'Infrared Forehead Thermometer',
+            sku: 'MED-THM-04',
+            barcode: '622100100104',
+            category: 'Diagnostics',
+            description: 'Non-contact clinical IR thermometer with fever alarm and 32-reading memory.',
+            purchasePrice: 310,
+            sellingPrice: 460,
+            quantity: 22,
+            minStock: 6,
+            unit: 'Unit',
+            imageIcon: 'thermometer',
+            expiryDate: addDays(850),
+            batches: [
+              { batchNumber: 'THM-109', quantity: 22, expiryDate: addDays(850) }
+            ],
+            createdAt: subDays(22),
+          },
+          {
+            id: 'PRD-1005',
+            name: 'Pulse Oximeter Fingertip OLED',
+            sku: 'MED-OXM-05',
+            barcode: '622100100105',
+            category: 'Diagnostics',
+            description: 'SpO2 blood oxygen saturation & pulse rate monitor with perfusion index.',
+            purchasePrice: 195,
+            sellingPrice: 310,
+            quantity: 34,
+            minStock: 10,
+            unit: 'Unit',
+            imageIcon: 'monitor',
+            expiryDate: addDays(800),
+            batches: [
+              { batchNumber: 'OXM-202', quantity: 34, expiryDate: addDays(800) }
+            ],
+            createdAt: subDays(20),
+          },
+          {
+            id: 'PRD-1006',
+            name: '5ml Sterile Syringes Box (100ct)',
+            sku: 'CON-SYR-05',
+            barcode: '622100100106',
+            category: 'Consumables',
+            description: 'Luer-lock 3-part disposable sterile syringes with 21G needle.',
+            purchasePrice: 135,
+            sellingPrice: 210,
+            quantity: 52,
+            minStock: 20,
+            unit: 'Box',
+            imageIcon: 'syringe',
+            expiryDate: addDays(45), // Expiring soon alert demo
+            batches: [
+              { batchNumber: 'SYR-EXP1', quantity: 12, expiryDate: addDays(45) },
+              { batchNumber: 'SYR-NEW2', quantity: 40, expiryDate: addDays(620) }
+            ],
+            createdAt: subDays(18),
+          },
+          {
+            id: 'PRD-1007',
+            name: 'First Aid Trauma Kit (Emergency)',
+            sku: 'EMG-KIT-07',
+            barcode: '622100100107',
+            category: 'First Aid & Trauma',
+            description: 'Complete clinical emergency kit: tourniquet, sterile gauze, antiseptic, shears.',
+            purchasePrice: 480,
+            sellingPrice: 720,
+            quantity: 14,
+            minStock: 5,
+            unit: 'Kit',
+            imageIcon: 'kit',
+            expiryDate: addDays(410),
+            batches: [
+              { batchNumber: 'TRM-77', quantity: 14, expiryDate: addDays(410) }
+            ],
+            createdAt: subDays(15),
+          },
+          {
+            id: 'PRD-1008',
+            name: 'Glucometer Blood Glucose Kit',
+            sku: 'DIA-GLU-08',
+            barcode: '622100100108',
+            category: 'Diabetes Care',
+            description: 'Rapid 5-second blood glucose meter with 50 test strips and lancing device.',
+            purchasePrice: 290,
+            sellingPrice: 440,
+            quantity: 0, // Out of stock demo
+            minStock: 8,
+            unit: 'Kit',
+            imageIcon: 'monitor',
+            expiryDate: addDays(280),
+            batches: [],
+            createdAt: subDays(14),
+          },
+          {
+            id: 'PRD-1009',
+            name: 'Nebulizer Compressor Machine',
+            sku: 'RSP-NEB-09',
+            barcode: '622100100109',
+            category: 'Respiratory',
+            description: 'Heavy-duty piston compressor aerosol therapy nebulizer with adult/pediatric masks.',
+            purchasePrice: 540,
+            sellingPrice: 790,
+            quantity: 16,
+            minStock: 5,
+            unit: 'Unit',
+            imageIcon: 'default',
+            expiryDate: addDays(950),
+            batches: [
+              { batchNumber: 'NEB-330', quantity: 16, expiryDate: addDays(950) }
+            ],
+            createdAt: subDays(12),
+          },
+          {
+            id: 'PRD-1010',
+            name: 'Alcohol Prep Pads 70% Isopropyl (200ct)',
+            sku: 'CON-ALC-10',
+            barcode: '622100100110',
+            category: 'Consumables',
+            description: 'Sterile medium 2-ply saturated 70% isopropyl alcohol swabs.',
+            purchasePrice: 65,
+            sellingPrice: 110,
+            quantity: 84,
+            minStock: 25,
+            unit: 'Box',
+            imageIcon: 'syringe',
+            expiryDate: addDays(510),
+            batches: [
+              { batchNumber: 'ALC-519', quantity: 84, expiryDate: addDays(510) }
+            ],
+            createdAt: subDays(10),
+          },
+        ];
+
+        // 2. Seed Customers
+        const seedCustomers = [
+          {
+            id: 'CUST-WALKIN',
+            fullName: 'Walk-in Customer',
+            phone: '0000000000',
+            address: 'Counter Retail Sale',
+            type: 'Individual',
+            totalOrders: 1,
+            totalSpending: 420,
+            outstandingBalance: 0,
+            createdAt: subDays(30),
+          },
+          {
+            id: 'CUST-2001',
+            fullName: 'Al-Shifa Pharmacy',
+            phone: '+20 101 234 5678',
+            address: '15 Tahrir St., Downtown',
+            type: 'Pharmacy',
+            totalOrders: 2,
+            totalSpending: 3560,
+            outstandingBalance: 360,
+            createdAt: subDays(25),
+          },
+          {
+            id: 'CUST-2002',
+            fullName: 'Nile Valley Hospital',
+            phone: '+20 102 987 6543',
+            address: '88 Corniche El-Nile, Medical District',
+            type: 'Hospital',
+            totalOrders: 1,
+            totalSpending: 4450,
+            outstandingBalance: 0,
+            createdAt: subDays(20),
+          },
+          {
+            id: 'CUST-2003',
+            fullName: 'Dr. Ahmed Clinic',
+            phone: '+20 111 456 7890',
+            address: 'Suite 402, Cleopatra Medical Tower',
+            type: 'Clinic',
+            totalOrders: 1,
+            totalSpending: 1350,
+            outstandingBalance: 0,
+            createdAt: subDays(14),
+          },
+        ];
+
+        // 3. Seed Historical Sales (for realistic Dashboard Charts & Sales History)
+        const seedSales = [
+          {
+            id: 'SAL-2026-001',
+            customerId: 'CUST-2002',
+            customerName: 'Nile Valley Hospital',
+            customerPhone: '+20 102 987 6543',
+            items: [
+              { productId: 'PRD-1001', name: 'Digital Blood Pressure Monitor', sku: 'MED-BPM-01', quantity: 5, unitPrice: 890, purchasePrice: 620, subtotal: 4450 }
+            ],
+            subtotal: 4450,
+            discount: 0,
+            shipping: 0,
+            grandTotal: 4450,
+            paymentMethod: 'Bank Transfer',
+            paidAmount: 4450,
+            remainingBalance: 0,
+            status: 'Completed',
+            returnedItems: [],
+            createdAt: subDays(4),
+          },
+          {
+            id: 'SAL-2026-002',
+            customerId: 'CUST-2001',
+            customerName: 'Al-Shifa Pharmacy',
+            customerPhone: '+20 101 234 5678',
+            items: [
+              { productId: 'PRD-1002', name: 'N95 Particulate Respirator Box (20ct)', sku: 'PPE-N95-20', quantity: 8, unitPrice: 275, purchasePrice: 180, subtotal: 2200 },
+              { productId: 'PRD-1003', name: 'Sterile Latex Surgical Gloves (50 Pairs)', sku: 'PPE-GLV-50', quantity: 4, unitPrice: 350, purchasePrice: 240, subtotal: 1400 }
+            ],
+            subtotal: 3600,
+            discount: 40,
+            shipping: 0,
+            grandTotal: 3560,
+            paymentMethod: 'Instapay',
+            paidAmount: 3200,
+            remainingBalance: 360,
+            status: 'Completed',
+            returnedItems: [],
+            createdAt: subDays(2),
+          },
+          {
+            id: 'SAL-2026-003',
+            customerId: 'CUST-2003',
+            customerName: 'Dr. Ahmed Clinic',
+            customerPhone: '+20 111 456 7890',
+            items: [
+              { productId: 'PRD-1004', name: 'Infrared Forehead Thermometer', sku: 'MED-THM-04', quantity: 2, unitPrice: 460, purchasePrice: 310, subtotal: 920 },
+              { productId: 'PRD-1010', name: 'Alcohol Prep Pads 70% Isopropyl (200ct)', sku: 'CON-ALC-10', quantity: 4, unitPrice: 110, purchasePrice: 65, subtotal: 440 }
+            ],
+            subtotal: 1360,
+            discount: 10,
+            shipping: 0,
+            grandTotal: 1350,
+            paymentMethod: 'Cash',
+            paidAmount: 1350,
+            remainingBalance: 0,
+            status: 'Completed',
+            returnedItems: [],
+            createdAt: subDays(1),
+          },
+          {
+            id: 'SAL-2026-004',
+            customerId: 'CUST-WALKIN',
+            customerName: 'Walk-in Customer',
+            customerPhone: '0000000000',
+            items: [
+              { productId: 'PRD-1005', name: 'Pulse Oximeter Fingertip OLED', sku: 'MED-OXM-05', quantity: 1, unitPrice: 310, purchasePrice: 195, subtotal: 310 },
+              { productId: 'PRD-1010', name: 'Alcohol Prep Pads 70% Isopropyl (200ct)', sku: 'CON-ALC-10', quantity: 1, unitPrice: 110, purchasePrice: 65, subtotal: 110 }
+            ],
+            subtotal: 420,
+            discount: 0,
+            shipping: 0,
+            grandTotal: 420,
+            paymentMethod: 'Mobile Wallet',
+            paidAmount: 420,
+            remainingBalance: 0,
+            status: 'Completed',
+            returnedItems: [],
+            createdAt: now.toISOString(),
+          },
+        ];
+
+        // 4. Seed Initial Inventory Movements
+        const seedMovements = [
+          {
+            id: 'MOV-9001',
+            productId: 'PRD-1001',
+            productName: 'Digital Blood Pressure Monitor',
+            sku: 'MED-BPM-01',
+            batchNumber: 'BCH-2026A',
+            previousQty: 0,
+            newQty: 33,
+            delta: 33,
+            type: 'STOCK_IN',
+            reason: 'Initial Supplier Delivery #PO-101',
+            date: subDays(30),
+          },
+          {
+            id: 'MOV-9002',
+            productId: 'PRD-1001',
+            productName: 'Digital Blood Pressure Monitor',
+            sku: 'MED-BPM-01',
+            batchNumber: 'BCH-2026A',
+            previousQty: 33,
+            newQty: 28,
+            delta: -5,
+            type: 'SALE_OUT',
+            reason: 'Sale SAL-2026-001',
+            date: subDays(4),
+          },
+          {
+            id: 'MOV-9003',
+            productId: 'PRD-1005',
+            productName: 'Pulse Oximeter Fingertip OLED',
+            sku: 'MED-OXM-05',
+            batchNumber: 'OXM-202',
+            previousQty: 35,
+            newQty: 34,
+            delta: -1,
+            type: 'SALE_OUT',
+            reason: 'Sale SAL-2026-004',
+            date: now.toISOString(),
+          },
+        ];
+
+        this.saveProducts(seedProducts);
+        this.saveCustomers(seedCustomers);
+        this.saveSales(seedSales);
+        this.saveInventoryMovements(seedMovements);
+        this.saveReturns([]);
+        this.saveSettings(this.getSettings());
+        localStorage.setItem(this.KEYS.VERSION, this.SCHEMA_VERSION);
+      },
+
+      exportAllJSON() {
+        return JSON.stringify({
+          schemaVersion: this.SCHEMA_VERSION,
+          exportedAt: new Date().toISOString(),
+          data: {
+            [this.KEYS.PRODUCTS]: this.getProducts(),
+            [this.KEYS.CUSTOMERS]: this.getCustomers(),
+            [this.KEYS.SALES]: this.getSales(),
+            [this.KEYS.INVENTORY]: this.getInventoryMovements(),
+            [this.KEYS.RETURNS]: this.getReturns(),
+            [this.KEYS.SETTINGS]: this.getSettings(),
+          }
+        }, null, 2);
+      },
+
+      importAllJSON(jsonString) {
+        const parsed = JSON.parse(jsonString);
+        const payload = parsed.data || parsed;
+        if (!Array.isArray(payload[this.KEYS.PRODUCTS])) {
+          throw new Error('Invalid backup format: missing products collection.');
+        }
+        this.saveProducts(payload[this.KEYS.PRODUCTS] || []);
+        this.saveCustomers(payload[this.KEYS.CUSTOMERS] || []);
+        this.saveSales(payload[this.KEYS.SALES] || []);
+        this.saveInventoryMovements(payload[this.KEYS.INVENTORY] || []);
+        this.saveReturns(payload[this.KEYS.RETURNS] || []);
+        if (payload[this.KEYS.SETTINGS]) this.saveSettings(payload[this.KEYS.SETTINGS]);
+        return true;
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 3. VALIDATION LAYER (ValidationService)
+     * =========================================================================
+     */
+    const ValidationService = {
+      validateProduct(data, editingId = null) {
+        const errors = [];
+        if (!data.name || !data.name.trim()) errors.push('Product Name is required.');
+        if (!data.sku || !data.sku.trim()) errors.push('SKU is required.');
+        if (!data.barcode || !data.barcode.trim()) errors.push('Barcode is required.');
+        if (Number(data.purchasePrice) < 0) errors.push('Purchase Price cannot be negative.');
+        if (Number(data.sellingPrice) <= 0) errors.push('Selling Price must be greater than zero.');
+        if (Number(data.quantity) < 0) errors.push('Quantity cannot be negative.');
+        if (Number(data.minStock) < 0) errors.push('Minimum Stock cannot be negative.');
+
+        const products = StorageService.getProducts();
+        const dupSku = products.find(
+          (p) => p.sku.trim().toLowerCase() === data.sku.trim().toLowerCase() && p.id !== editingId
+        );
+        if (dupSku) errors.push(`Duplicate SKU "${data.sku}" already exists on ${dupSku.name}.`);
+
+        const dupBarcode = products.find(
+          (p) => p.barcode.trim().toLowerCase() === data.barcode.trim().toLowerCase() && p.id !== editingId
+        );
+        if (dupBarcode) errors.push(`Duplicate Barcode "${data.barcode}" already exists on ${dupBarcode.name}.`);
+
+        return { valid: errors.length === 0, errors };
+      },
+
+      validateCustomer(data) {
+        const errors = [];
+        if (!data.fullName || !data.fullName.trim()) errors.push('Customer Full Name is required.');
+        if (!data.phone || !data.phone.trim()) errors.push('Phone number is required.');
+        return { valid: errors.length === 0, errors };
+      },
+
+      validateCartForCheckout(cartItems, paidAmount, grandTotal) {
+        const errors = [];
+        if (!cartItems || cartItems.length === 0) {
+          errors.push('Shopping cart is empty.');
+          return { valid: false, errors };
+        }
+        const liveProducts = StorageService.getProducts();
+        for (const item of cartItems) {
+          if (item.quantity <= 0) {
+            errors.push(`Invalid quantity for ${item.name}.`);
+          }
+          const prod = liveProducts.find((p) => p.id === item.productId);
+          if (!prod) {
+            errors.push(`Product "${item.name}" no longer exists in catalog.`);
+          } else if (prod.quantity < item.quantity) {
+            errors.push(`Insufficient stock for "${prod.name}". Available: ${prod.quantity}, Requested: ${item.quantity}.`);
+          }
+        }
+        if (Number(paidAmount) < 0) {
+          errors.push('Paid amount cannot be negative.');
+        }
+        return { valid: errors.length === 0, errors };
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 4. BUSINESS LOGIC MODULES
+     * =========================================================================
+     */
+
+    // --- INVENTORY MODULE ---
+    const InventoryModule = {
+      recordMovement({ productId, productName, sku, batchNumber = 'GENERAL', previousQty, newQty, type, reason }) {
+        const movements = StorageService.getInventoryMovements();
+        const entry = {
+          id: Utils.generateId('MOV'),
+          productId,
+          productName,
+          sku,
+          batchNumber,
+          previousQty: Number(previousQty),
+          newQty: Number(newQty),
+          delta: Number(newQty) - Number(previousQty),
+          type, // STOCK_IN, STOCK_OUT, ADJUSTMENT, SALE_OUT, SALE_CANCEL_RESTORE, RETURN_RESTOCK
+          reason: reason || type,
+          date: new Date().toISOString(),
+        };
+        movements.unshift(entry);
+        StorageService.saveInventoryMovements(movements);
+        return entry;
+      },
+
+      // Deduct stock using FEFO (First-Expired, First-Out) across batches
+      deductStockFEFO(productId, qtyToDeduct, reason) {
+        const products = StorageService.getProducts();
+        const idx = products.findIndex((p) => p.id === productId);
+        if (idx === -1) throw new Error('Product not found for deduction.');
+        const prod = products[idx];
+        if (prod.quantity < qtyToDeduct) {
+          throw new Error(`Insufficient stock for ${prod.name}`);
+        }
+
+        const prevQty = prod.quantity;
+        let remaining = qtyToDeduct;
+        let usedBatches = [];
+
+        if (Array.isArray(prod.batches) && prod.batches.length > 0) {
+          // Sort earliest expiry first
+          prod.batches.sort((a, b) => new Date(a.expiryDate || '2099-12-31') - new Date(b.expiryDate || '2099-12-31'));
+          for (const batch of prod.batches) {
+            if (remaining <= 0) break;
+            if (batch.quantity > 0) {
+              const take = Math.min(batch.quantity, remaining);
+              batch.quantity -= take;
+              remaining -= take;
+              usedBatches.push(`${batch.batchNumber}(-${take})`);
+            }
+          }
+          // Remove depleted batches and update earliest active expiryDate
+          prod.batches = prod.batches.filter((b) => b.quantity > 0);
+          if (prod.batches.length > 0) {
+            prod.expiryDate = prod.batches[0].expiryDate;
+          }
+        }
+
+        prod.quantity = Math.max(0, prevQty - qtyToDeduct);
+        products[idx] = prod;
+        StorageService.saveProducts(products);
+
+        this.recordMovement({
+          productId: prod.id,
+          productName: prod.name,
+          sku: prod.sku,
+          batchNumber: usedBatches.join(', ') || 'GENERAL',
+          previousQty: prevQty,
+          newQty: prod.quantity,
+          type: 'SALE_OUT',
+          reason,
+        });
+      },
+
+      addStock({ productId, quantity, batchNumber, expiryDate, reason, type = 'STOCK_IN' }) {
+        const qty = Number(quantity);
+        if (qty <= 0) throw new Error('Quantity must be greater than 0.');
+        const products = StorageService.getProducts();
+        const idx = products.findIndex((p) => p.id === productId);
+        if (idx === -1) throw new Error('Product not found.');
+
+        const prod = products[idx];
+        const prevQty = prod.quantity;
+        prod.quantity = prevQty + qty;
+
+        if (!Array.isArray(prod.batches)) prod.batches = [];
+        const cleanBatch = (batchNumber || `BCH-${Date.now().toString().slice(-4)}`).trim();
+        const exp = expiryDate || prod.expiryDate || '';
+
+        const existingBatch = prod.batches.find((b) => b.batchNumber === cleanBatch && b.expiryDate === exp);
+        if (existingBatch) {
+          existingBatch.quantity += qty;
+        } else {
+          prod.batches.push({ batchNumber: cleanBatch, quantity: qty, expiryDate: exp });
+        }
+
+        // Keep batches sorted by earliest expiry
+        prod.batches.sort((a, b) => new Date(a.expiryDate || '2099-12-31') - new Date(b.expiryDate || '2099-12-31'));
+        if (prod.batches[0]?.expiryDate) {
+          prod.expiryDate = prod.batches[0].expiryDate;
+        }
+
+        products[idx] = prod;
+        StorageService.saveProducts(products);
+
+        this.recordMovement({
+          productId: prod.id,
+          productName: prod.name,
+          sku: prod.sku,
+          batchNumber: cleanBatch,
+          previousQty: prevQty,
+          newQty: prod.quantity,
+          type,
+          reason: reason || 'Stock replenishment',
+        });
+        AppRouter.updateNavBadges();
+      },
+
+      removeOrAdjustStock({ productId, newQuantity, deltaQuantity, mode, reason }) {
+        const products = StorageService.getProducts();
+        const idx = products.findIndex((p) => p.id === productId);
+        if (idx === -1) throw new Error('Product not found.');
+        const prod = products[idx];
+        const prevQty = prod.quantity;
+        let targetQty = prevQty;
+
+        if (mode === 'STOCK_OUT') {
+          const out = Number(deltaQuantity);
+          if (out <= 0) throw new Error('Stock out quantity must be greater than 0.');
+          if (out > prevQty) throw new Error(`Cannot remove ${out} units. Only ${prevQty} available.`);
+          targetQty = prevQty - out;
+        } else {
+          targetQty = Number(newQuantity);
+          if (targetQty < 0) throw new Error('Adjusted stock cannot be negative.');
+        }
+
+        const diff = targetQty - prevQty;
+        if (diff === 0) throw new Error('No quantity change detected.');
+
+        // Sync batches proportionally or on earliest batch
+        if (diff < 0 && Array.isArray(prod.batches) && prod.batches.length > 0) {
+          let toDeduct = Math.abs(diff);
+          for (const b of prod.batches) {
+            if (toDeduct <= 0) break;
+            const take = Math.min(b.quantity, toDeduct);
+            b.quantity -= take;
+            toDeduct -= take;
+          }
+          prod.batches = prod.batches.filter((b) => b.quantity > 0);
+        } else if (diff > 0) {
+          if (!Array.isArray(prod.batches)) prod.batches = [];
+          prod.batches.push({
+            batchNumber: `ADJ-${Date.now().toString().slice(-4)}`,
+            quantity: diff,
+            expiryDate: prod.expiryDate || '',
+          });
+        }
+
+        prod.quantity = targetQty;
+        products[idx] = prod;
+        StorageService.saveProducts(products);
+
+        this.recordMovement({
+          productId: prod.id,
+          productName: prod.name,
+          sku: prod.sku,
+          batchNumber: 'ADJUSTMENT',
+          previousQty: prevQty,
+          newQty: targetQty,
+          type: mode === 'STOCK_OUT' ? 'STOCK_OUT' : 'ADJUSTMENT',
+          reason: reason || (mode === 'STOCK_OUT' ? 'Manual Stock Out' : 'Inventory Audit Adjustment'),
+        });
+        AppRouter.updateNavBadges();
+      }
+    };
+
+    // --- CART MODULE ---
+    const CartModule = {
+      items: [], // { productId, name, sku, unitPrice, purchasePrice, quantity, maxStock }
+      customerId: 'CUST-WALKIN',
+      discountType: 'fixed', // 'fixed' | 'percent'
+      discountValue: 0,
+      shippingCost: 0,
+      paymentMethod: 'Cash',
+      paidAmount: '',
+      paidManuallyEdited: false,
+
+      init() {
+        const settings = StorageService.getSettings();
+        this.shippingCost = Number(settings.defaultShipping) || 0;
+      },
+
+      addItem(productId, qty = 1) {
+        const products = StorageService.getProducts();
+        const product = products.find((p) => p.id === productId);
+        if (!product) {
+          Utils.showToast('Product not found.', 'error');
+          return false;
+        }
+        if (product.quantity <= 0) {
+          Utils.showToast(`"${product.name}" is Out of Stock!`, 'error');
+          Utils.playBeep(240, 0.15);
+          return false;
+        }
+
+        const existing = this.items.find((i) => i.productId === productId);
+        if (existing) {
+          if (existing.quantity + qty > product.quantity) {
+            Utils.showToast(`Max available stock (${product.quantity}) reached for ${product.name}.`, 'warning');
+            Utils.playBeep(300, 0.12);
+            return false;
+          }
+          existing.quantity += qty;
+          existing.maxStock = product.quantity;
+        } else {
+          if (qty > product.quantity) {
+            Utils.showToast(`Only ${product.quantity} units available.`, 'warning');
+            return false;
+          }
+          this.items.push({
+            productId: product.id,
+            name: product.name,
+            sku: product.sku,
+            unitPrice: Number(product.sellingPrice),
+            purchasePrice: Number(product.purchasePrice),
+            quantity: qty,
+            maxStock: product.quantity,
+          });
+        }
+        Utils.playBeep(920, 0.06);
+        POSModule.renderCart();
+        return true;
+      },
+
+      updateQuantity(productId, newQty) {
+        const idx = this.items.findIndex((i) => i.productId === productId);
+        if (idx === -1) return;
+        const products = StorageService.getProducts();
+        const prod = products.find((p) => p.id === productId);
+        const liveStock = prod ? prod.quantity : this.items[idx].maxStock;
+
+        if (newQty <= 0) {
+          this.removeItem(productId);
+          return;
+        }
+        if (newQty > liveStock) {
+          Utils.showToast(`Cannot exceed available stock (${liveStock}).`, 'warning');
+          this.items[idx].quantity = liveStock;
+        } else {
+          this.items[idx].quantity = newQty;
+        }
+        this.items[idx].maxStock = liveStock;
+        POSModule.renderCart();
+      },
+
+      removeItem(productId) {
+        this.items = this.items.filter((i) => i.productId !== productId);
+        POSModule.renderCart();
+      },
+
+      clear() {
+        this.items = [];
+        this.discountValue = 0;
+        this.shippingCost = Number(StorageService.getSettings().defaultShipping) || 0;
+        this.paidAmount = '';
+        this.paidManuallyEdited = false;
+        POSModule.renderCart();
+      },
+
+      getTotals() {
+        const subtotal = this.items.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
+        let discountAmount = 0;
+        const rawDisc = Math.max(0, Number(this.discountValue) || 0);
+        if (this.discountType === 'percent') {
+          discountAmount = Math.min(subtotal, (subtotal * Math.min(100, rawDisc)) / 100);
+        } else {
+          discountAmount = Math.min(subtotal, rawDisc);
+        }
+        const shipping = Math.max(0, Number(this.shippingCost) || 0);
+        const grandTotal = Math.max(0, subtotal - discountAmount + shipping);
+
+        const effectivePaid = this.paidManuallyEdited
+          ? Math.max(0, Number(this.paidAmount) || 0)
+          : grandTotal;
+
+        const remainingBalance = Math.max(0, grandTotal - effectivePaid);
+        const changeDue = Math.max(0, effectivePaid - grandTotal);
+
+        return {
+          subtotal,
+          discountAmount,
+          shipping,
+          grandTotal,
+          effectivePaid,
+          remainingBalance,
+          changeDue,
+        };
+      }
+    };
+
+    // --- CHECKOUT MODULE (Atomic Transaction Flow) ---
+    const CheckoutModule = {
+      completeSale() {
+        const totals = CartModule.getTotals();
+        const validation = ValidationService.validateCartForCheckout(
+          CartModule.items,
+          totals.effectivePaid,
+          totals.grandTotal
+        );
+
+        if (!validation.valid) {
+          Utils.showToast(validation.errors[0], 'error');
+          return null;
+        }
+
+        const customers = StorageService.getCustomers();
+        const customer = customers.find((c) => c.id === CartModule.customerId) || {
+          id: 'CUST-WALKIN',
+          fullName: 'Walk-in Customer',
+          phone: '0000000000',
+        };
+
+        // 1. Build immutable Sale record with product snapshots
+        const saleRecord = {
+          id: Utils.generateId('SAL'),
+          customerId: customer.id,
+          customerName: customer.fullName,
+          customerPhone: customer.phone,
+          items: CartModule.items.map((item) => ({
+            productId: item.productId,
+            name: item.name,
+            sku: item.sku,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice,
+            purchasePrice: item.purchasePrice,
+            subtotal: item.unitPrice * item.quantity,
+          })),
+          subtotal: totals.subtotal,
+          discount: totals.discountAmount,
+          shipping: totals.shipping,
+          grandTotal: totals.grandTotal,
+          paymentMethod: CartModule.paymentMethod,
+          paidAmount: totals.effectivePaid,
+          remainingBalance: totals.remainingBalance,
+          changeDue: totals.changeDue,
+          status: 'Completed',
+          stockDeducted: true,
+          returnedItems: [],
+          createdAt: new Date().toISOString(),
+        };
+
+        try {
+          // 2. Save Sale first
+          const sales = StorageService.getSales();
+          sales.unshift(saleRecord);
+          StorageService.saveSales(sales);
+
+          // 3. Deduct stock & record Stock Movements exactly once per item
+          for (const item of saleRecord.items) {
+            InventoryModule.deductStockFEFO(
+              item.productId,
+              item.quantity,
+              `Sale ${saleRecord.id} (${customer.fullName})`
+            );
+          }
+
+          // 4. Update Customer Metrics & Outstanding Balance
+          const custIdx = customers.findIndex((c) => c.id === customer.id);
+          if (custIdx !== -1) {
+            customers[custIdx].totalOrders = (Number(customers[custIdx].totalOrders) || 0) + 1;
+            customers[custIdx].totalSpending = (Number(customers[custIdx].totalSpending) || 0) + saleRecord.grandTotal;
+            customers[custIdx].outstandingBalance =
+              (Number(customers[custIdx].outstandingBalance) || 0) + saleRecord.remainingBalance;
+            StorageService.saveCustomers(customers);
+          }
+
+          // 5. Reset Cart, Refresh POS Grid & Badges, Open Receipt Modal
+          CartModule.clear();
+          AppRouter.updateNavBadges();
+          if (AppRouter.currentRoute === 'pos') {
+            POSModule.renderProductGrid();
+          }
+          Utils.playBeep(1100, 0.12);
+          Utils.showToast(`Sale ${saleRecord.id} completed successfully!`, 'success');
+          ReceiptModule.openReceiptModal(saleRecord.id);
+          return saleRecord;
+        } catch (err) {
+          console.error('Checkout transaction failed:', err);
+          Utils.showToast(`Checkout failed: ${err.message}`, 'error');
+          return null;
+        }
+      }
+    };
+
+    // --- SALES & RETURNS MODULE ---
+    const SalesModule = {
+      currentFilters: {
+        search: '',
+        date: '',
+        customerId: '',
+        paymentMethod: '',
+        status: '',
+      },
+
+      cancelSale(saleId) {
+        const sales = StorageService.getSales();
+        const idx = sales.findIndex((s) => s.id === saleId);
+        if (idx === -1) return;
+        const sale = sales[idx];
+
+        if (sale.status === 'Cancelled') {
+          Utils.showToast('This sale is already cancelled.', 'warning');
+          return;
+        }
+
+        // Restore stock ONLY if original sale deducted it and hasn't been restored
+        if (sale.stockDeducted !== false && !sale.stockRestoredOnCancel) {
+          for (const item of sale.items) {
+            // Subtract any already returned quantities so we don't double-restore
+            const alreadyReturned = (sale.returnedItems || [])
+              .filter((r) => r.productId === item.productId)
+              .reduce((sum, r) => sum + r.quantity, 0);
+            const qtyToRestore = Math.max(0, item.quantity - alreadyReturned);
+
+            if (qtyToRestore > 0) {
+              const products = StorageService.getProducts();
+              const prod = products.find((p) => p.id === item.productId);
+              if (prod) {
+                InventoryModule.addStock({
+                  productId: prod.id,
+                  quantity: qtyToRestore,
+                  batchNumber: 'CANCEL-RESTORE',
+                  expiryDate: prod.expiryDate,
+                  reason: `Cancelled Sale ${sale.id}`,
+                  type: 'SALE_CANCEL_RESTORE',
+                });
+              }
+            }
+          }
+          sale.stockRestoredOnCancel = true;
+        }
+
+        // Revert customer totals safely
+        const customers = StorageService.getCustomers();
+        const cIdx = customers.findIndex((c) => c.id === sale.customerId);
+        if (cIdx !== -1) {
+          customers[cIdx].totalOrders = Math.max(0, (customers[cIdx].totalOrders || 1) - 1);
+          customers[cIdx].totalSpending = Math.max(0, (customers[cIdx].totalSpending || 0) - sale.grandTotal);
+          customers[cIdx].outstandingBalance = Math.max(
+            0,
+            (customers[cIdx].outstandingBalance || 0) - (sale.remainingBalance || 0)
+          );
+          StorageService.saveCustomers(customers);
+        }
+
+        sale.status = 'Cancelled';
+        sale.cancelledAt = new Date().toISOString();
+        sales[idx] = sale;
+        StorageService.saveSales(sales);
+
+        Utils.showToast(`Sale ${sale.id} cancelled and stock restored.`, 'success');
+        AppRouter.closeModal();
+        this.render();
+      },
+
+      processReturn(saleId, returnLines, reason) {
+        const sales = StorageService.getSales();
+        const sIdx = sales.findIndex((s) => s.id === saleId);
+        if (sIdx === -1) throw new Error('Original sale not found.');
+        const sale = sales[sIdx];
+
+        if (sale.status === 'Cancelled') {
+          throw new Error('Cannot process returns on a cancelled sale.');
+        }
+
+        const validLines = returnLines.filter((l) => l.returnQty > 0);
+        if (validLines.length === 0) {
+          throw new Error('Please enter at least 1 item quantity to return.');
+        }
+
+        let totalRefund = 0;
+        const processedItems = [];
+
+        for (const line of validLines) {
+          const origItem = sale.items.find((i) => i.productId === line.productId);
+          if (!origItem) throw new Error(`Item ${line.name} not part of original sale.`);
+
+          const prevReturned = (sale.returnedItems || [])
+            .filter((r) => r.productId === line.productId)
+            .reduce((sum, r) => sum + r.quantity, 0);
+
+          const maxReturnable = origItem.quantity - prevReturned;
+          if (line.returnQty > maxReturnable) {
+            throw new Error(`Cannot return ${line.returnQty} of ${origItem.name}. Max returnable: ${maxReturnable}.`);
+          }
+
+          const lineRefund = line.returnQty * origItem.unitPrice;
+          totalRefund += lineRefund;
+
+          processedItems.push({
+            productId: origItem.productId,
+            name: origItem.name,
+            sku: origItem.sku,
+            quantity: line.returnQty,
+            unitPrice: origItem.unitPrice,
+            refundAmount: lineRefund,
+            restocked: Boolean(line.restock),
+          });
+
+          // Track returned quantity on sale to prevent duplicate returns
+          if (!Array.isArray(sale.returnedItems)) sale.returnedItems = [];
+          sale.returnedItems.push({
+            productId: origItem.productId,
+            quantity: line.returnQty,
+            date: new Date().toISOString(),
+          });
+
+          // Restore stock ONLY if eligible for restocking
+          if (line.restock) {
+            const products = StorageService.getProducts();
+            const prod = products.find((p) => p.id === origItem.productId);
+            if (prod) {
+              InventoryModule.addStock({
+                productId: prod.id,
+                quantity: line.returnQty,
+                batchNumber: 'RETURN-RESTOCK',
+                expiryDate: prod.expiryDate,
+                reason: `Customer Return on ${sale.id}`,
+                type: 'RETURN_RESTOCK',
+              });
+            }
+          }
+        }
+
+        // Save separate Return Transaction record
+        const returns = StorageService.getReturns();
+        const returnRecord = {
+          id: Utils.generateId('RET'),
+          saleId: sale.id,
+          customerId: sale.customerId,
+          customerName: sale.customerName,
+          items: processedItems,
+          totalRefund,
+          reason: reason || 'Customer return',
+          createdAt: new Date().toISOString(),
+        };
+        returns.unshift(returnRecord);
+        StorageService.saveReturns(returns);
+
+        // Update Sale status (Partially Returned vs Returned)
+        const totalSoldQty = sale.items.reduce((s, i) => s + i.quantity, 0);
+        const totalReturnedQty = sale.returnedItems.reduce((s, r) => s + r.quantity, 0);
+        sale.status = totalReturnedQty >= totalSoldQty ? 'Returned' : 'Partially Returned';
+        sales[sIdx] = sale;
+        StorageService.saveSales(sales);
+
+        // Adjust customer spending
+        const customers = StorageService.getCustomers();
+        const cIdx = customers.findIndex((c) => c.id === sale.customerId);
+        if (cIdx !== -1) {
+          customers[cIdx].totalSpending = Math.max(0, (customers[cIdx].totalSpending || 0) - totalRefund);
+          StorageService.saveCustomers(customers);
+        }
+
+        return returnRecord;
+      },
+
+      render() {
+        const root = document.getElementById('app-root');
+        const sales = StorageService.getSales();
+        const customers = StorageService.getCustomers();
+        const returns = StorageService.getReturns();
+
+        const filtered = sales.filter((s) => {
+          if (this.currentFilters.search && !s.id.toLowerCase().includes(this.currentFilters.search.toLowerCase())) {
+            return false;
+          }
+          if (this.currentFilters.date && !s.createdAt.startsWith(this.currentFilters.date)) {
+            return false;
+          }
+          if (this.currentFilters.customerId && s.customerId !== this.currentFilters.customerId) {
+            return false;
+          }
+          if (this.currentFilters.paymentMethod && s.paymentMethod !== this.currentFilters.paymentMethod) {
+            return false;
+          }
+          if (this.currentFilters.status && s.status !== this.currentFilters.status) {
+            return false;
+          }
+          return true;
+        });
+
+        const statusBadge = (status) => {
+          const map = {
+            Completed: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+            'Partially Returned': 'bg-amber-50 text-amber-700 border-amber-200',
+            Returned: 'bg-purple-50 text-purple-700 border-purple-200',
+            Cancelled: 'bg-red-50 text-red-700 border-red-200',
+          };
+          return `<span class="px-2.5 py-1 rounded-full text-xs font-semibold border ${map[status] || 'bg-slate-100 text-slate-700'}">${Utils.escapeHTML(status)}</span>`;
+        };
+
+        root.innerHTML = `
+          <div class="space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h1 class="text-2xl font-bold text-navy-800">Sales &amp; Returns Management</h1>
+                <p class="text-sm text-slate-500">Audit historical invoices, reprint receipts, process restockable returns, or cancel sales safely.</p>
+              </div>
+              <div class="flex items-center gap-2 text-xs font-medium bg-white px-3.5 py-2 rounded-xl border border-slate-200 shadow-card">
+                <span class="text-slate-500">Total Invoices:</span>
+                <span class="font-bold text-navy-800 tabular-nums">${sales.length}</span>
+                <span class="text-slate-300">|</span>
+                <span class="text-slate-500">Returns Logged:</span>
+                <span class="font-bold text-medteal-600 tabular-nums">${returns.length}</span>
+              </div>
+            </div>
+
+            <!-- Filters Bar -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-card grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
+              <div class="lg:col-span-2 relative">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+                <input id="sales-filter-search" type="text" value="${Utils.escapeHTML(this.currentFilters.search)}" placeholder="Search by Sale ID (e.g. SAL-...)"
+                  class="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600" />
+              </div>
+              <input id="sales-filter-date" type="date" value="${Utils.escapeHTML(this.currentFilters.date)}"
+                class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600" />
+              <select id="sales-filter-customer" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600">
+                <option value="">All Customers</option>
+                ${customers.map((c) => `<option value="${c.id}" ${this.currentFilters.customerId === c.id ? 'selected' : ''}>${Utils.escapeHTML(c.fullName)}</option>`).join('')}
+              </select>
+              <select id="sales-filter-payment" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600">
+                <option value="">All Payments</option>
+                ${['Cash', 'Instapay', 'Mobile Wallet', 'Bank Transfer'].map((m) => `<option value="${m}" ${this.currentFilters.paymentMethod === m ? 'selected' : ''}>${m}</option>`).join('')}
+              </select>
+              <div class="flex gap-2">
+                <select id="sales-filter-status" class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600">
+                  <option value="">All Statuses</option>
+                  ${['Completed', 'Partially Returned', 'Returned', 'Cancelled'].map((st) => `<option value="${st}" ${this.currentFilters.status === st ? 'selected' : ''}>${st}</option>`).join('')}
+                </select>
+                <button id="sales-filter-reset" title="Reset Filters" class="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600">
+                  <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Sales Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      <th class="py-3.5 px-4">Sale ID</th>
+                      <th class="py-3.5 px-4">Date &amp; Time</th>
+                      <th class="py-3.5 px-4">Customer</th>
+                      <th class="py-3.5 px-4">Items</th>
+                      <th class="py-3.5 px-4">Payment</th>
+                      <th class="py-3.5 px-4 text-right">Grand Total</th>
+                      <th class="py-3.5 px-4 text-right">Balance</th>
+                      <th class="py-3.5 px-4">Status</th>
+                      <th class="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-sm">
+                    ${
+                      filtered.length === 0
+                        ? `<tr><td colspan="9" class="py-10 text-center text-slate-400">No sales records match your current filters.</td></tr>`
+                        : filtered
+                            .map(
+                              (sale) => `
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                          <td class="py-3 px-4 font-mono font-semibold text-navy-800 text-xs">${Utils.escapeHTML(sale.id)}</td>
+                          <td class="py-3 px-4 text-slate-600 text-xs whitespace-nowrap">${Utils.formatDate(sale.createdAt)}</td>
+                          <td class="py-3 px-4 font-medium text-navy-800">${Utils.escapeHTML(sale.customerName)}</td>
+                          <td class="py-3 px-4 text-slate-600 tabular-nums">${sale.items.reduce((a, b) => a + b.quantity, 0)} units</td>
+                          <td class="py-3 px-4">
+                            <span class="px-2 py-0.5 rounded-md bg-medblue-50 text-medblue-600 text-xs font-medium">${Utils.escapeHTML(sale.paymentMethod)}</span>
+                          </td>
+                          <td class="py-3 px-4 text-right font-bold text-navy-800 tabular-nums">${Utils.formatCurrency(sale.grandTotal)}</td>
+                          <td class="py-3 px-4 text-right tabular-nums text-xs ${sale.remainingBalance > 0 ? 'text-amber-600 font-bold' : 'text-slate-400'}">
+                            ${sale.remainingBalance > 0 ? Utils.formatCurrency(sale.remainingBalance) : 'Paid'}
+                          </td>
+                          <td class="py-3 px-4">${statusBadge(sale.status)}</td>
+                          <td class="py-3 px-4 text-right whitespace-nowrap">
+                            <div class="inline-flex items-center gap-1">
+                              <button onclick="SalesModule.openSaleDetailsModal('${sale.id}')" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-navy-800" title="View Details">
+                                <i data-lucide="eye" class="w-4 h-4"></i>
+                              </button>
+                              <button onclick="ReceiptModule.openReceiptModal('${sale.id}')" class="p-1.5 rounded-lg text-medblue-600 hover:bg-medblue-50" title="Print Invoice">
+                                <i data-lucide="printer" class="w-4 h-4"></i>
+                              </button>
+                              ${
+                                sale.status !== 'Cancelled' && sale.status !== 'Returned'
+                                  ? `<button onclick="SalesModule.openReturnModal('${sale.id}')" class="p-1.5 rounded-lg text-medteal-600 hover:bg-medteal-50" title="Process Return">
+                                      <i data-lucide="undo-2" class="w-4 h-4"></i>
+                                    </button>`
+                                  : ''
+                              }
+                            </div>
+                          </td>
+                        </tr>
+                      `
+                            )
+                            .join('')
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Return Transactions Log -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+              <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/60">
+                <h2 class="font-bold text-navy-800 text-sm flex items-center gap-2">
+                  <i data-lucide="history" class="w-4 h-4 text-medteal-600"></i>
+                  <span>Processed Return Transactions</span>
+                </h2>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      <th class="py-3 px-4">Return ID</th>
+                      <th class="py-3 px-4">Original Sale</th>
+                      <th class="py-3 px-4">Customer</th>
+                      <th class="py-3 px-4">Returned Items</th>
+                      <th class="py-3 px-4 text-right">Refund Total</th>
+                      <th class="py-3 px-4">Reason</th>
+                      <th class="py-3 px-4">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-sm">
+                    ${
+                      returns.length === 0
+                        ? `<tr><td colspan="7" class="py-6 text-center text-slate-400 text-xs">No return transactions recorded yet.</td></tr>`
+                        : returns
+                            .map(
+                              (ret) => `
+                        <tr>
+                          <td class="py-2.5 px-4 font-mono text-xs font-semibold text-purple-700">${Utils.escapeHTML(ret.id)}</td>
+                          <td class="py-2.5 px-4 font-mono text-xs text-slate-600">${Utils.escapeHTML(ret.saleId)}</td>
+                          <td class="py-2.5 px-4 font-medium">${Utils.escapeHTML(ret.customerName)}</td>
+                          <td class="py-2.5 px-4 text-xs text-slate-600">
+                            ${ret.items.map((i) => `${Utils.escapeHTML(i.name)} (x${i.quantity}${i.restocked ? ' • Restocked' : ' • Damaged/No Restock'})`).join(', ')}
+                          </td>
+                          <td class="py-2.5 px-4 text-right font-bold text-red-600 tabular-nums">-${Utils.formatCurrency(ret.totalRefund)}</td>
+                          <td class="py-2.5 px-4 text-xs text-slate-500">${Utils.escapeHTML(ret.reason)}</td>
+                          <td class="py-2.5 px-4 text-xs text-slate-500">${Utils.formatDate(ret.createdAt)}</td>
+                        </tr>
+                      `
+                            )
+                            .join('')
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+
+        // Attach filter listeners
+        document.getElementById('sales-filter-search').addEventListener('input', (e) => {
+          this.currentFilters.search = e.target.value;
+          this.render();
+        });
+        document.getElementById('sales-filter-date').addEventListener('change', (e) => {
+          this.currentFilters.date = e.target.value;
+          this.render();
+        });
+        document.getElementById('sales-filter-customer').addEventListener('change', (e) => {
+          this.currentFilters.customerId = e.target.value;
+          this.render();
+        });
+        document.getElementById('sales-filter-payment').addEventListener('change', (e) => {
+          this.currentFilters.paymentMethod = e.target.value;
+          this.render();
+        });
+        document.getElementById('sales-filter-status').addEventListener('change', (e) => {
+          this.currentFilters.status = e.target.value;
+          this.render();
+        });
+        document.getElementById('sales-filter-reset').addEventListener('click', () => {
+          this.currentFilters = { search: '', date: '', customerId: '', paymentMethod: '', status: '' };
+          this.render();
+        });
+      },
+
+      openSaleDetailsModal(saleId) {
+        const sale = StorageService.getSales().find((s) => s.id === saleId);
+        if (!sale) return;
+
+        AppRouter.openModal(`
+          <div class="p-6 space-y-5">
+            <div class="flex items-start justify-between border-b border-slate-200 pb-4">
+              <div>
+                <span class="text-xs font-mono uppercase tracking-wider text-medblue-600 font-bold">Invoice Snapshot</span>
+                <h3 class="text-xl font-bold text-navy-800 mt-0.5">${Utils.escapeHTML(sale.id)}</h3>
+                <p class="text-xs text-slate-500 mt-0.5">${Utils.formatDate(sale.createdAt)} • Customer: <strong>${Utils.escapeHTML(sale.customerName)}</strong></p>
+              </div>
+              <button onclick="AppRouter.closeModal()" class="p-2 rounded-xl hover:bg-slate-100 text-slate-500">
+                <i data-lucide="x" class="w-5 h-5"></i>
+              </button>
+            </div>
+
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-sm text-left">
+                <thead class="bg-slate-50 text-xs uppercase text-slate-500 border-b border-slate-200">
+                  <tr>
+                    <th class="py-2.5 px-3">Product (Snapshot)</th>
+                    <th class="py-2.5 px-3">SKU</th>
+                    <th class="py-2.5 px-3 text-right">Qty</th>
+                    <th class="py-2.5 px-3 text-right">Unit Price</th>
+                    <th class="py-2.5 px-3 text-right">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${sale.items
+                    .map(
+                      (i) => `
+                    <tr>
+                      <td class="py-2.5 px-3 font-medium text-navy-800">${Utils.escapeHTML(i.name)}</td>
+                      <td class="py-2.5 px-3 font-mono text-xs text-slate-500">${Utils.escapeHTML(i.sku)}</td>
+                      <td class="py-2.5 px-3 text-right tabular-nums">${i.quantity}</td>
+                      <td class="py-2.5 px-3 text-right tabular-nums">${Utils.formatCurrency(i.unitPrice)}</td>
+                      <td class="py-2.5 px-3 text-right font-semibold tabular-nums">${Utils.formatCurrency(i.subtotal)}</td>
+                    </tr>
+                  `
+                    )
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+
+            <div class="bg-slate-50 rounded-xl p-4 space-y-1.5 text-sm">
+              <div class="flex justify-between text-slate-600"><span>Subtotal</span><span class="tabular-nums">${Utils.formatCurrency(sale.subtotal)}</span></div>
+              <div class="flex justify-between text-slate-600"><span>Discount</span><span class="tabular-nums text-emerald-600">-${Utils.formatCurrency(sale.discount)}</span></div>
+              <div class="flex justify-between text-slate-600"><span>Shipping</span><span class="tabular-nums">${Utils.formatCurrency(sale.shipping)}</span></div>
+              <div class="flex justify-between font-bold text-base text-navy-800 pt-2 border-t border-slate-200">
+                <span>Grand Total</span><span class="tabular-nums">${Utils.formatCurrency(sale.grandTotal)}</span>
+              </div>
+              <div class="flex justify-between text-xs text-slate-500 pt-1">
+                <span>Paid via ${Utils.escapeHTML(sale.paymentMethod)}: <strong>${Utils.formatCurrency(sale.paidAmount)}</strong></span>
+                <span>Remaining Balance: <strong class="${sale.remainingBalance > 0 ? 'text-amber-600' : ''}">${Utils.formatCurrency(sale.remainingBalance)}</strong></span>
+              </div>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
+              <div>
+                ${
+                  sale.status !== 'Cancelled'
+                    ? `<button id="btn-cancel-sale-trigger" class="px-4 py-2 rounded-xl bg-red-50 hover:bg-red-100 text-red-700 text-sm font-semibold border border-red-200 transition-colors">
+                        Cancel Sale &amp; Restore Stock
+                      </button>`
+                    : `<span class="text-xs font-semibold text-red-600">Sale Cancelled (${Utils.formatDate(sale.cancelledAt)})</span>`
+                }
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="ReceiptModule.openReceiptModal('${sale.id}')" class="px-4 py-2 rounded-xl bg-medblue-600 hover:bg-medblue-500 text-white text-sm font-semibold flex items-center gap-2">
+                  <i data-lucide="printer" class="w-4 h-4"></i> Print Invoice
+                </button>
+                <button onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 text-sm font-medium hover:bg-slate-50">Close</button>
+              </div>
+            </div>
+            <div id="cancel-confirm-box" class="hidden p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between gap-3">
+              <span class="text-xs text-red-800 font-medium">Confirm cancellation? Unreturned inventory will be restored once.</span>
+              <button onclick="SalesModule.cancelSale('${sale.id}')" class="px-3 py-1.5 rounded-lg bg-red-600 text-white text-xs font-bold hover:bg-red-700 shrink-0">Yes, Cancel Sale</button>
+            </div>
+          </div>
+        `);
+
+        const cancelTrigger = document.getElementById('btn-cancel-sale-trigger');
+        if (cancelTrigger) {
+          cancelTrigger.addEventListener('click', () => {
+            document.getElementById('cancel-confirm-box').classList.remove('hidden');
+          });
+        }
+      },
+
+      openReturnModal(saleId) {
+        const sale = StorageService.getSales().find((s) => s.id === saleId);
+        if (!sale) return;
+
+        const itemRows = sale.items
+          .map((item) => {
+            const alreadyRet = (sale.returnedItems || [])
+              .filter((r) => r.productId === item.productId)
+              .reduce((sum, r) => sum + r.quantity, 0);
+            const remainingQty = Math.max(0, item.quantity - alreadyRet);
+
+            return `
+              <tr class="border-b border-slate-100">
+                <td class="py-2.5 px-3">
+                  <div class="font-medium text-navy-800 text-sm">${Utils.escapeHTML(item.name)}</div>
+                  <div class="text-[11px] text-slate-400 font-mono">${Utils.escapeHTML(item.sku)} • Sold: ${item.quantity} (Prev Returned: ${alreadyRet})</div>
+                </td>
+                <td class="py-2.5 px-3 text-right tabular-nums text-sm">${Utils.formatCurrency(item.unitPrice)}</td>
+                <td class="py-2.5 px-3 text-center">
+                  <input type="number" min="0" max="${remainingQty}" value="0"
+                    data-product-id="${item.productId}"
+                    data-product-name="${Utils.escapeHTML(item.name)}"
+                    class="return-qty-input w-20 px-2 py-1 text-center rounded-lg border border-slate-300 text-sm font-bold tabular-nums"
+                    ${remainingQty === 0 ? 'disabled' : ''} />
+                </td>
+                <td class="py-2.5 px-3 text-center">
+                  <input type="checkbox" checked data-restock-for="${item.productId}" class="w-4 h-4 accent-medteal-600 rounded" ${remainingQty === 0 ? 'disabled' : ''} />
+                </td>
+              </tr>
+            `;
+          })
+          .join('');
+
+        AppRouter.openModal(`
+          <form id="process-return-form" class="p-6 space-y-4">
+            <div class="flex items-start justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 class="text-lg font-bold text-navy-800">Process Customer Return</h3>
+                <p class="text-xs text-slate-500">Original Invoice: <strong>${Utils.escapeHTML(sale.id)}</strong> • ${Utils.escapeHTML(sale.customerName)}</p>
+              </div>
+              <button type="button" onclick="AppRouter.closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
+                <i data-lucide="x" class="w-5 h-5"></i>
+              </button>
+            </div>
+
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-left">
+                <thead class="bg-slate-50 text-[11px] uppercase text-slate-500 border-b border-slate-200">
+                  <tr>
+                    <th class="py-2 px-3">Item</th>
+                    <th class="py-2 px-3 text-right">Unit Price</th>
+                    <th class="py-2 px-3 text-center">Return Qty</th>
+                    <th class="py-2 px-3 text-center">Eligible Restock?</th>
+                  </tr>
+                </thead>
+                <tbody>${itemRows}</tbody>
+              </table>
+            </div>
+
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Return Reason</label>
+              <input type="text" id="return-reason-input" required placeholder="e.g., Unopened surplus box, wrong size ordered..."
+                class="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-medteal-600" />
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600">Cancel</button>
+              <button type="submit" class="px-5 py-2 rounded-xl bg-medteal-600 hover:bg-medteal-500 text-white text-sm font-semibold">Confirm Return</button>
+            </div>
+          </form>
+        `);
+
+        document.getElementById('process-return-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const qtyInputs = Array.from(document.querySelectorAll('.return-qty-input'));
+          const lines = qtyInputs.map((inp) => {
+            const pid = inp.dataset.productId;
+            const restockCb = document.querySelector(`input[data-restock-for="${pid}"]`);
+            return {
+              productId: pid,
+              name: inp.dataset.productName,
+              returnQty: Number(inp.value) || 0,
+              restock: restockCb ? restockCb.checked : false,
+            };
+          });
+          const reason = document.getElementById('return-reason-input').value.trim();
+
+          try {
+            const ret = this.processReturn(sale.id, lines, reason);
+            Utils.showToast(`Return ${ret.id} processed (${Utils.formatCurrency(ret.totalRefund)} refunded).`, 'success');
+            AppRouter.closeModal();
+            AppRouter.updateNavBadges();
+            this.render();
+          } catch (err) {
+            Utils.showToast(err.message, 'error');
+          }
+        });
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 5. POS TERMINAL UI & CONTROLLER (POSModule)
+     * =========================================================================
+     */
+    const POSModule = {
+      searchQuery: '',
+      selectedCategory: 'All',
+
+      render() {
+        const root = document.getElementById('app-root');
+        const products = StorageService.getProducts();
+        const categories = ['All', ...new Set(products.map((p) => p.category).filter(Boolean))];
+
+        root.innerHTML = `
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+            <!-- LEFT / MAIN CATALOG AREA (7 Columns on LG, 8 on XL) -->
+            <div class="lg:col-span-7 xl:col-span-8 space-y-4">
+              <!-- Search & Barcode Scanner Bar -->
+              <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-card grid grid-cols-1 md:grid-cols-12 gap-3">
+                <div class="md:col-span-7 relative">
+                  <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                  <input id="pos-search-input" type="text" value="${Utils.escapeHTML(this.searchQuery)}"
+                    placeholder="Search medical supplies by Name, SKU, or Barcode... [/ or F2]"
+                    class="w-full pl-10 pr-8 py-2.5 text-sm rounded-xl border border-slate-200 bg-slate-50/60 focus:bg-white focus:outline-none focus:border-medblue-600 transition-all" />
+                  ${
+                    this.searchQuery
+                      ? `<button id="pos-clear-search" class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"><i data-lucide="x-circle" class="w-4 h-4"></i></button>`
+                      : ''
+                  }
+                </div>
+                <div class="md:col-span-5 relative">
+                  <i data-lucide="scan-barcode" class="w-4 h-4 text-medteal-600 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                  <input id="pos-barcode-input" type="text"
+                    placeholder="Scan Barcode + Enter [F4]"
+                    class="w-full pl-10 pr-3 py-2.5 text-sm font-mono rounded-xl border border-medteal-500/40 bg-medteal-50/40 focus:bg-white focus:outline-none focus:border-medteal-600 transition-all" />
+                </div>
+              </div>
+
+              <!-- Category Filter Pills & Shortcut Hint -->
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div id="pos-category-pills" class="flex items-center gap-1.5 overflow-x-auto pb-1">
+                  ${categories
+                    .map(
+                      (cat) => `
+                    <button data-cat="${Utils.escapeHTML(cat)}"
+                      class="pos-cat-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all whitespace-nowrap ${
+                        this.selectedCategory === cat
+                          ? 'bg-navy-800 text-white shadow-sm'
+                          : 'bg-white text-slate-600 border border-slate-200 hover:border-medblue-500 hover:text-navy-800'
+                      }">
+                      ${Utils.escapeHTML(cat)}
+                    </button>
+                  `
+                    )
+                    .join('')}
+                </div>
+                <div class="hidden xl:flex items-center gap-2 text-[11px] text-slate-400">
+                  <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-600 font-mono">F2</kbd> Search
+                  <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-600 font-mono">F4</kbd> Barcode
+                  <kbd class="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-600 font-mono">F8</kbd> Pay
+                </div>
+              </div>
+
+              <!-- Product Grid -->
+              <div id="pos-product-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3.5"></div>
+            </div>
+
+            <!-- RIGHT SHOPPING CART & CHECKOUT PANEL (5 Columns on LG, 4 on XL) -->
+            <div class="lg:col-span-5 xl:col-span-4 bg-white rounded-2xl border border-slate-200 shadow-elevated flex flex-col lg:sticky lg:top-20 overflow-hidden">
+              <div id="pos-cart-container" class="flex flex-col"></div>
+            </div>
+          </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+        this.bindCatalogEvents();
+        this.renderProductGrid();
+        this.renderCart();
+      },
+
+      bindCatalogEvents() {
+        const searchInput = document.getElementById('pos-search-input');
+        const barcodeInput = document.getElementById('pos-barcode-input');
+        const clearBtn = document.getElementById('pos-clear-search');
+
+        if (searchInput) {
+          searchInput.addEventListener('input', (e) => {
+            this.searchQuery = e.target.value;
+            this.renderProductGrid();
+          });
+        }
+        if (clearBtn) {
+          clearBtn.addEventListener('click', () => {
+            this.searchQuery = '';
+            this.render();
+          });
+        }
+        if (barcodeInput) {
+          barcodeInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              const code = barcodeInput.value.trim();
+              if (!code) return;
+              const match = StorageService.getProducts().find(
+                (p) => p.barcode.toLowerCase() === code.toLowerCase() || p.sku.toLowerCase() === code.toLowerCase()
+              );
+              if (match) {
+                const added = CartModule.addItem(match.id, 1);
+                if (added) {
+                  barcodeInput.classList.add('scan-success');
+                  setTimeout(() => barcodeInput.classList.remove('scan-success'), 600);
+                  Utils.showToast(`Scanned: ${match.name}`, 'success');
+                }
+              } else {
+                Utils.playBeep(220, 0.18);
+                Utils.showToast(`No product found for barcode "${code}"`, 'error');
+              }
+              barcodeInput.value = '';
+            }
+          });
+        }
+
+        document.querySelectorAll('.pos-cat-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            this.selectedCategory = btn.dataset.cat;
+            this.render();
+          });
+        });
+      },
+
+      renderProductGrid() {
+        const grid = document.getElementById('pos-product-grid');
+        if (!grid) return;
+
+        const q = this.searchQuery.trim().toLowerCase();
+        const products = StorageService.getProducts().filter((p) => {
+          const catMatch = this.selectedCategory === 'All' || p.category === this.selectedCategory;
+          if (!catMatch) return false;
+          if (!q) return true;
+          return (
+            p.name.toLowerCase().includes(q) ||
+            p.sku.toLowerCase().includes(q) ||
+            p.barcode.toLowerCase().includes(q)
+          );
+        });
+
+        if (products.length === 0) {
+          grid.innerHTML = `
+            <div class="col-span-full bg-white rounded-2xl border border-slate-200 p-10 text-center">
+              <i data-lucide="package-search" class="w-10 h-10 text-slate-300 mx-auto mb-2"></i>
+              <p class="font-semibold text-navy-800">No medical supplies found</p>
+              <p class="text-xs text-slate-400 mt-1">Try adjusting your search term or category filter.</p>
+            </div>
+          `;
+          if (window.lucide) lucide.createIcons({ nodes: [grid] });
+          return;
+        }
+
+        grid.innerHTML = products
+          .map((p) => {
+            const outOfStock = p.quantity <= 0;
+            const lowStock = p.quantity > 0 && p.quantity <= p.minStock;
+            const daysExp = Utils.daysUntil(p.expiryDate);
+            const expiringSoon = daysExp <= 60;
+
+            const stockBadge = outOfStock
+              ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-50 text-red-600 border border-red-200">Out of Stock</span>`
+              : lowStock
+              ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200 tabular-nums">Low: ${p.quantity} ${Utils.escapeHTML(p.unit)}</span>`
+              : `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 tabular-nums">${p.quantity} ${Utils.escapeHTML(p.unit)}</span>`;
+
+            return `
+              <div class="bg-white rounded-2xl border ${outOfStock ? 'border-slate-200 opacity-70' : 'border-slate-200 hover:border-medblue-500 hover:shadow-elevated'} shadow-card p-3.5 flex flex-col justify-between transition-all group">
+                <div>
+                  <div class="flex items-start justify-between gap-2.5 mb-2.5">
+                    <div class="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 p-1.5 shrink-0">
+                      ${Utils.getMedicalThumbnailSVG(p.imageIcon)}
+                    </div>
+                    <div class="flex flex-col items-end gap-1">
+                      ${stockBadge}
+                      <span class="text-[10px] font-mono text-slate-400">${Utils.escapeHTML(p.sku)}</span>
+                    </div>
+                  </div>
+                  <h3 class="font-bold text-sm text-navy-800 leading-snug line-clamp-2 group-hover:text-medblue-600 transition-colors">
+                    ${Utils.escapeHTML(p.name)}
+                  </h3>
+                  <div class="flex items-center gap-2 mt-1.5 text-[11px] text-slate-500">
+                    <span>${Utils.escapeHTML(p.category)}</span>
+                    ${
+                      p.expiryDate
+                        ? `<span>•</span><span class="${expiringSoon ? 'text-amber-600 font-semibold' : ''}">Exp: ${p.expiryDate}</span>`
+                        : ''
+                    }
+                  </div>
+                </div>
+
+                <div class="mt-3.5 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                  <div>
+                    <span class="text-[10px] uppercase text-slate-400 block leading-none">Price</span>
+                    <span class="font-extrabold text-base text-navy-800 tabular-nums">${Utils.formatCurrency(p.sellingPrice)}</span>
+                  </div>
+                  <button
+                    onclick="CartModule.addItem('${p.id}', 1)"
+                    ${outOfStock ? 'disabled' : ''}
+                    class="px-3 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all ${
+                      outOfStock
+                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                        : 'bg-medblue-600 hover:bg-navy-800 text-white shadow-sm active:scale-95'
+                    }">
+                    <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                    <span>Add</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          })
+          .join('');
+
+        if (window.lucide) lucide.createIcons({ nodes: [grid] });
+      },
+
+      renderCart() {
+        const container = document.getElementById('pos-cart-container');
+        if (!container) return;
+
+        const customers = StorageService.getCustomers();
+        const totals = CartModule.getTotals();
+        const itemCount = CartModule.items.reduce((sum, i) => sum + i.quantity, 0);
+
+        container.innerHTML = `
+          <!-- Cart Header & Customer Selector -->
+          <div class="p-4 bg-navy-800 text-white space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="shopping-cart" class="w-5 h-5 text-medteal-500"></i>
+                <h2 class="font-bold text-base">Current Order</h2>
+                <span class="px-2 py-0.5 rounded-full text-xs font-bold bg-medblue-600 text-white tabular-nums">${itemCount}</span>
+              </div>
+              ${
+                CartModule.items.length > 0
+                  ? `<button id="pos-clear-cart-btn" class="text-xs text-slate-300 hover:text-red-300 flex items-center gap-1 transition-colors">
+                      <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear
+                    </button>`
+                  : ''
+              }
+            </div>
+
+            <!-- Customer Selector + Quick Add -->
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <select id="pos-customer-select" class="w-full pl-3 pr-8 py-2 text-xs font-medium rounded-xl bg-navy-900/90 border border-slate-600 text-white focus:outline-none focus:border-medteal-500">
+                  ${customers
+                    .map(
+                      (c) => `<option value="${c.id}" ${CartModule.customerId === c.id ? 'selected' : ''}>${Utils.escapeHTML(c.fullName)} (${Utils.escapeHTML(c.type)})</option>`
+                    )
+                    .join('')}
+                </select>
+              </div>
+              <button id="pos-quick-add-cust-btn" title="Quick-Add Customer"
+                class="px-2.5 py-2 rounded-xl bg-medteal-600 hover:bg-medteal-500 text-white text-xs font-semibold flex items-center gap-1 shrink-0 transition-colors">
+                <i data-lucide="user-plus" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">New</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Cart Line Items -->
+          <div class="p-3.5 max-h-[300px] overflow-y-auto divide-y divide-slate-100 bg-slate-50/40">
+            ${
+              CartModule.items.length === 0
+                ? `<div class="py-10 text-center text-slate-400">
+                    <i data-lucide="shopping-bag" class="w-9 h-9 mx-auto mb-2 text-slate-300"></i>
+                    <p class="text-sm font-medium text-slate-500">Cart is empty</p>
+                    <p class="text-xs mt-0.5">Select products or scan a barcode to start checkout</p>
+                  </div>`
+                : CartModule.items
+                    .map(
+                      (item) => `
+                  <div class="py-2.5 flex items-center justify-between gap-2">
+                    <div class="min-w-0 flex-1">
+                      <div class="font-semibold text-xs text-navy-800 truncate">${Utils.escapeHTML(item.name)}</div>
+                      <div class="text-[11px] text-slate-500 tabular-nums">${Utils.formatCurrency(item.unitPrice)} × ${item.quantity}</div>
+                    </div>
+                    <div class="flex items-center gap-1.5 shrink-0">
+                      <button onclick="CartModule.updateQuantity('${item.productId}', ${item.quantity - 1})"
+                        class="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 font-bold">-</button>
+                      <span class="w-7 text-center text-xs font-bold tabular-nums text-navy-800">${item.quantity}</span>
+                      <button onclick="CartModule.updateQuantity('${item.productId}', ${item.quantity + 1})"
+                        class="w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 flex items-center justify-center text-slate-700 font-bold">+</button>
+                    </div>
+                    <div class="text-right shrink-0 w-20">
+                      <div class="font-bold text-xs text-navy-800 tabular-nums">${Utils.formatCurrency(item.unitPrice * item.quantity)}</div>
+                      <button onclick="CartModule.removeItem('${item.productId}')" class="text-[10px] text-red-500 hover:underline">Remove</button>
+                    </div>
+                  </div>
+                `
+                    )
+                    .join('')
+            }
+          </div>
+
+          <!-- Totals & Adjustments -->
+          <div class="p-4 border-t border-slate-200 space-y-2.5 text-xs bg-white">
+            <div class="flex justify-between text-slate-600">
+              <span>Subtotal</span>
+              <span class="font-semibold tabular-nums">${Utils.formatCurrency(totals.subtotal)}</span>
+            </div>
+
+            <!-- Discount Control -->
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-600">Discount</span>
+              <div class="flex items-center gap-1">
+                <select id="pos-discount-type" class="px-1.5 py-1 rounded-lg border border-slate-200 bg-slate-50 text-xs font-medium">
+                  <option value="fixed" ${CartModule.discountType === 'fixed' ? 'selected' : ''}>Fixed</option>
+                  <option value="percent" ${CartModule.discountType === 'percent' ? 'selected' : ''}>%</option>
+                </select>
+                <input id="pos-discount-val" type="number" min="0" step="any" value="${CartModule.discountValue || ''}" placeholder="0"
+                  class="w-20 px-2 py-1 text-right rounded-lg border border-slate-200 tabular-nums font-semibold" />
+              </div>
+            </div>
+
+            <!-- Shipping Cost -->
+            <div class="flex items-center justify-between gap-2">
+              <span class="text-slate-600">Shipping / Delivery</span>
+              <input id="pos-shipping-val" type="number" min="0" step="any" value="${CartModule.shippingCost || ''}" placeholder="0"
+                class="w-24 px-2 py-1 text-right rounded-lg border border-slate-200 tabular-nums font-semibold" />
+            </div>
+
+            <!-- Grand Total -->
+            <div class="pt-2.5 border-t border-slate-200 flex items-center justify-between">
+              <span class="text-sm font-bold text-navy-800">Grand Total</span>
+              <span class="text-xl font-extrabold text-medblue-600 tabular-nums">${Utils.formatCurrency(totals.grandTotal)}</span>
+            </div>
+          </div>
+
+          <!-- Checkout & Payment Section -->
+          <div class="p-4 bg-slate-50 border-t border-slate-200 space-y-3">
+            <div>
+              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1.5">Payment Method</label>
+              <div class="grid grid-cols-2 gap-1.5">
+                ${['Cash', 'Instapay', 'Mobile Wallet', 'Bank Transfer']
+                  .map(
+                    (method) => `
+                  <button type="button" data-pay-method="${method}"
+                    class="pos-pay-method-btn py-2 px-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                      CartModule.paymentMethod === method
+                        ? 'bg-navy-800 text-white border-navy-800 shadow-sm'
+                        : 'bg-white text-slate-600 border-slate-200 hover:border-medblue-500'
+                    }">
+                    ${method}
+                  </button>
+                `
+                  )
+                  .join('')}
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2.5 items-end">
+              <div>
+                <div class="flex items-center justify-between mb-1">
+                  <label for="pos-paid-input" class="text-[11px] font-bold uppercase text-slate-500">Paid Amount [F8]</label>
+                  <button type="button" id="pos-exact-paid-btn" class="text-[10px] font-bold text-medteal-600 hover:underline">Exact</button>
+                </div>
+                <input id="pos-paid-input" type="number" min="0" step="any"
+                  value="${CartModule.paidManuallyEdited ? CartModule.paidAmount : totals.grandTotal.toFixed(2)}"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-300 bg-white font-bold text-sm text-navy-800 tabular-nums focus:outline-none focus:border-medteal-600" />
+              </div>
+
+              <div class="p-2 rounded-xl border ${totals.remainingBalance > 0 ? 'bg-amber-50 border-amber-200' : 'bg-emerald-50 border-emerald-200'}">
+                <span class="block text-[10px] font-bold uppercase ${totals.remainingBalance > 0 ? 'text-amber-700' : 'text-emerald-700'}">
+                  ${totals.changeDue > 0 ? 'Change Due' : 'Remaining Balance'}
+                </span>
+                <span class="text-sm font-extrabold tabular-nums ${totals.remainingBalance > 0 ? 'text-amber-800' : 'text-emerald-800'}">
+                  ${totals.changeDue > 0 ? Utils.formatCurrency(totals.changeDue) : Utils.formatCurrency(totals.remainingBalance)}
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-12 gap-2 pt-1">
+              <button id="pos-complete-sale-btn"
+                ${CartModule.items.length === 0 ? 'disabled' : ''}
+                class="col-span-9 py-3 px-4 rounded-xl font-bold text-sm text-white flex items-center justify-center gap-2 shadow-md transition-all ${
+                  CartModule.items.length === 0
+                    ? 'bg-slate-300 cursor-not-allowed'
+                    : 'bg-gradient-to-r from-medteal-600 to-medblue-600 hover:from-medteal-500 hover:to-medblue-500 active:scale-[0.99]'
+                }">
+                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                <span>Complete Sale</span>
+              </button>
+              <button id="pos-print-last-btn" title="Print Last Receipt"
+                class="col-span-3 py-3 px-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-100 text-navy-800 font-semibold text-xs flex items-center justify-center gap-1">
+                <i data-lucide="printer" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        `;
+
+        if (window.lucide) lucide.createIcons({ nodes: [container] });
+
+        // Bind Cart & Checkout Events
+        const clearBtn = document.getElementById('pos-clear-cart-btn');
+        if (clearBtn) clearBtn.addEventListener('click', () => CartModule.clear());
+
+        const custSelect = document.getElementById('pos-customer-select');
+        if (custSelect) {
+          custSelect.addEventListener('change', (e) => {
+            CartModule.customerId = e.target.value;
+          });
+        }
+
+        const quickAddCustBtn = document.getElementById('pos-quick-add-cust-btn');
+        if (quickAddCustBtn) {
+          quickAddCustBtn.addEventListener('click', () => CustomersModule.openCustomerModal(null, true));
+        }
+
+        const discType = document.getElementById('pos-discount-type');
+        const discVal = document.getElementById('pos-discount-val');
+        const shipVal = document.getElementById('pos-shipping-val');
+        if (discType) {
+          discType.addEventListener('change', (e) => {
+            CartModule.discountType = e.target.value;
+            this.renderCart();
+          });
+        }
+        if (discVal) {
+          discVal.addEventListener('change', (e) => {
+            CartModule.discountValue = Math.max(0, Number(e.target.value) || 0);
+            this.renderCart();
+          });
+        }
+        if (shipVal) {
+          shipVal.addEventListener('change', (e) => {
+            CartModule.shippingCost = Math.max(0, Number(e.target.value) || 0);
+            this.renderCart();
+          });
+        }
+
+        document.querySelectorAll('.pos-pay-method-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            CartModule.paymentMethod = btn.dataset.payMethod;
+            this.renderCart();
+          });
+        });
+
+        const paidInput = document.getElementById('pos-paid-input');
+        if (paidInput) {
+          paidInput.addEventListener('change', (e) => {
+            CartModule.paidManuallyEdited = true;
+            CartModule.paidAmount = Math.max(0, Number(e.target.value) || 0);
+            this.renderCart();
+          });
+        }
+
+        const exactBtn = document.getElementById('pos-exact-paid-btn');
+        if (exactBtn) {
+          exactBtn.addEventListener('click', () => {
+            CartModule.paidManuallyEdited = false;
+            this.renderCart();
+          });
+        }
+
+        const completeBtn = document.getElementById('pos-complete-sale-btn');
+        if (completeBtn) {
+          completeBtn.addEventListener('click', () => CheckoutModule.completeSale());
+        }
+
+        const printLastBtn = document.getElementById('pos-print-last-btn');
+        if (printLastBtn) {
+          printLastBtn.addEventListener('click', () => {
+            const sales = StorageService.getSales();
+            if (sales.length === 0) {
+              Utils.showToast('No completed sales available to print.', 'info');
+              return;
+            }
+            ReceiptModule.openReceiptModal(sales[0].id);
+          });
+        }
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 6. PRODUCTS MANAGEMENT MODULE (ProductsModule)
+     * =========================================================================
+     */
+    const ProductsModule = {
+      searchTerm: '',
+
+      render() {
+        const root = document.getElementById('app-root');
+        const q = this.searchTerm.trim().toLowerCase();
+        const products = StorageService.getProducts().filter(
+          (p) =>
+            !q ||
+            p.name.toLowerCase().includes(q) ||
+            p.sku.toLowerCase().includes(q) ||
+            p.barcode.toLowerCase().includes(q) ||
+            p.category.toLowerCase().includes(q)
+        );
+
+        root.innerHTML = `
+          <div class="space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h1 class="text-2xl font-bold text-navy-800">Medical Supplies Catalog</h1>
+                <p class="text-sm text-slate-500">Manage SKUs, barcodes, profit margins, units, and expiry metadata.</p>
+              </div>
+              <button onclick="ProductsModule.openProductModal()"
+                class="px-4 py-2.5 rounded-xl bg-medblue-600 hover:bg-navy-800 text-white text-sm font-semibold flex items-center gap-2 shadow-sm self-start sm:self-auto">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span>Add New Product</span>
+              </button>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-card flex flex-col sm:flex-row gap-3 justify-between">
+              <div class="relative flex-1 max-w-md">
+                <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2"></i>
+                <input id="prod-search-input" type="text" value="${Utils.escapeHTML(this.searchTerm)}"
+                  placeholder="Filter by name, SKU, barcode, category..."
+                  class="w-full pl-10 pr-3 py-2 text-sm rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600" />
+              </div>
+              <div class="text-xs text-slate-500 flex items-center gap-2">
+                <span>Showing <strong>${products.length}</strong> catalog items</span>
+              </div>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      <th class="py-3.5 px-4">Product</th>
+                      <th class="py-3.5 px-4">SKU / Barcode</th>
+                      <th class="py-3.5 px-4">Category</th>
+                      <th class="py-3.5 px-4 text-right">Cost</th>
+                      <th class="py-3.5 px-4 text-right">Selling Price</th>
+                      <th class="py-3.5 px-4 text-right">Margin</th>
+                      <th class="py-3.5 px-4 text-right">Stock</th>
+                      <th class="py-3.5 px-4">Expiry</th>
+                      <th class="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-sm">
+                    ${
+                      products.length === 0
+                        ? `<tr><td colspan="9" class="py-10 text-center text-slate-400">No products found.</td></tr>`
+                        : products
+                            .map((p) => {
+                              const margin =
+                                p.sellingPrice > 0
+                                  ? (((p.sellingPrice - p.purchasePrice) / p.sellingPrice) * 100).toFixed(1)
+                                  : '0.0';
+                              const isOut = p.quantity <= 0;
+                              const isLow = p.quantity > 0 && p.quantity <= p.minStock;
+                              return `
+                            <tr class="hover:bg-slate-50/70">
+                              <td class="py-3 px-4">
+                                <div class="flex items-center gap-3">
+                                  <div class="w-10 h-10 rounded-xl bg-slate-50 border border-slate-100 p-1 shrink-0">
+                                    ${Utils.getMedicalThumbnailSVG(p.imageIcon)}
+                                  </div>
+                                  <div>
+                                    <div class="font-bold text-navy-800">${Utils.escapeHTML(p.name)}</div>
+                                    <div class="text-xs text-slate-400 line-clamp-1">${Utils.escapeHTML(p.description || '')}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td class="py-3 px-4 font-mono text-xs">
+                                <div class="font-semibold text-navy-800">${Utils.escapeHTML(p.sku)}</div>
+                                <div class="text-slate-400">${Utils.escapeHTML(p.barcode)}</div>
+                              </td>
+                              <td class="py-3 px-4">
+                                <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700 text-xs font-medium">${Utils.escapeHTML(p.category)}</span>
+                              </td>
+                              <td class="py-3 px-4 text-right tabular-nums text-slate-600">${Utils.formatCurrency(p.purchasePrice)}</td>
+                              <td class="py-3 px-4 text-right tabular-nums font-bold text-navy-800">${Utils.formatCurrency(p.sellingPrice)}</td>
+                              <td class="py-3 px-4 text-right tabular-nums">
+                                <span class="px-2 py-0.5 rounded-full text-xs font-semibold ${Number(margin) >= 20 ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-700'}">${margin}%</span>
+                              </td>
+                              <td class="py-3 px-4 text-right tabular-nums">
+                                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                                  isOut
+                                    ? 'bg-red-50 text-red-600'
+                                    : isLow
+                                    ? 'bg-amber-50 text-amber-700'
+                                    : 'bg-emerald-50 text-emerald-700'
+                                }">
+                                  ${p.quantity} ${Utils.escapeHTML(p.unit)}
+                                </span>
+                              </td>
+                              <td class="py-3 px-4 text-xs text-slate-600 tabular-nums">${p.expiryDate || '—'}</td>
+                              <td class="py-3 px-4 text-right whitespace-nowrap">
+                                <button onclick="ProductsModule.openProductModal('${p.id}')" class="p-1.5 rounded-lg text-medblue-600 hover:bg-medblue-50" title="Edit">
+                                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="ProductsModule.deleteProduct('${p.id}')" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50" title="Delete">
+                                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                              </td>
+                            </tr>
+                          `;
+                            })
+                            .join('')
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+        document.getElementById('prod-search-input').addEventListener('input', (e) => {
+          this.searchTerm = e.target.value;
+          this.render();
+        });
+      },
+
+      openProductModal(productId = null) {
+        const products = StorageService.getProducts();
+        const existing = productId ? products.find((p) => p.id === productId) : null;
+
+        AppRouter.openModal(`
+          <form id="product-crud-form" class="p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 class="text-lg font-bold text-navy-800">${existing ? 'Edit Medical Product' : 'Add New Medical Product'}</h3>
+              <button type="button" onclick="AppRouter.closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
+                <i data-lucide="x" class="w-5 h-5"></i>
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-sm">
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Product Name *</label>
+                <input name="name" required value="${Utils.escapeHTML(existing?.name || '')}" placeholder="e.g. Digital Blood Pressure Monitor"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">SKU (Unique) *</label>
+                <input name="sku" required value="${Utils.escapeHTML(existing?.sku || '')}" placeholder="MED-001"
+                  class="w-full px-3 py-2 font-mono rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Barcode (Unique) *</label>
+                <input name="barcode" required value="${Utils.escapeHTML(existing?.barcode || '')}" placeholder="622100100999"
+                  class="w-full px-3 py-2 font-mono rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+                <input name="category" list="med-categories" required value="${Utils.escapeHTML(existing?.category || 'Diagnostics')}"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:border-medblue-600" />
+                <datalist id="med-categories">
+                  <option value="Diagnostics"></option>
+                  <option value="PPE & Protection"></option>
+                  <option value="Consumables"></option>
+                  <option value="First Aid & Trauma"></option>
+                  <option value="Diabetes Care"></option>
+                  <option value="Respiratory"></option>
+                </datalist>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Unit *</label>
+                <select name="unit" class="w-full px-3 py-2 rounded-xl border border-slate-200">
+                  ${['Unit', 'Box', 'Kit', 'Pack', 'Bottle', 'Roll']
+                    .map((u) => `<option value="${u}" ${existing?.unit === u ? 'selected' : ''}>${u}</option>`)
+                    .join('')}
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Purchase Price (Cost) *</label>
+                <input name="purchasePrice" type="number" step="any" min="0" required value="${existing ? existing.purchasePrice : ''}"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 tabular-nums" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Selling Price *</label>
+                <input name="sellingPrice" type="number" step="any" min="0.01" required value="${existing ? existing.sellingPrice : ''}"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 tabular-nums" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Current Quantity *</label>
+                <input name="quantity" type="number" min="0" required value="${existing ? existing.quantity : 0}"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 tabular-nums" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Minimum Stock Alert *</label>
+                <input name="minStock" type="number" min="0" required value="${existing ? existing.minStock : 5}"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200 tabular-nums" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Expiry Date</label>
+                <input name="expiryDate" type="date" value="${existing?.expiryDate || ''}"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Medical Icon</label>
+                <select name="imageIcon" class="w-full px-3 py-2 rounded-xl border border-slate-200">
+                  ${[
+                    { val: 'monitor', label: 'Diagnostic Monitor' },
+                    { val: 'mask', label: 'Respirator / Mask' },
+                    { val: 'gloves', label: 'Surgical Gloves' },
+                    { val: 'syringe', label: 'Syringe / Swab' },
+                    { val: 'thermometer', label: 'Thermometer' },
+                    { val: 'kit', label: 'First Aid Kit' },
+                    { val: 'default', label: 'General Medical' },
+                  ]
+                    .map((ic) => `<option value="${ic.val}" ${existing?.imageIcon === ic.val ? 'selected' : ''}>${ic.label}</option>`)
+                    .join('')}
+                </select>
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Description</label>
+                <textarea name="description" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200">${Utils.escapeHTML(existing?.description || '')}</textarea>
+              </div>
+            </div>
+
+            <div class="flex justify-end gap-2 pt-2 border-t border-slate-100">
+              <button type="button" onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600">Cancel</button>
+              <button type="submit" class="px-5 py-2 rounded-xl bg-medblue-600 hover:bg-navy-800 text-white text-sm font-semibold">
+                ${existing ? 'Save Changes' : 'Create Product'}
+              </button>
+            </div>
+          </form>
+        `);
+
+        document.getElementById('product-crud-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          const payload = {
+            name: fd.get('name').trim(),
+            sku: fd.get('sku').trim(),
+            barcode: fd.get('barcode').trim(),
+            category: fd.get('category').trim(),
+            unit: fd.get('unit'),
+            purchasePrice: Number(fd.get('purchasePrice')),
+            sellingPrice: Number(fd.get('sellingPrice')),
+            quantity: Number(fd.get('quantity')),
+            minStock: Number(fd.get('minStock')),
+            expiryDate: fd.get('expiryDate'),
+            imageIcon: fd.get('imageIcon'),
+            description: fd.get('description').trim(),
+          };
+
+          const check = ValidationService.validateProduct(payload, existing?.id || null);
+          if (!check.valid) {
+            Utils.showToast(check.errors[0], 'error');
+            return;
+          }
+
+          const all = StorageService.getProducts();
+          if (existing) {
+            const idx = all.findIndex((p) => p.id === existing.id);
+            const prevQty = all[idx].quantity;
+            all[idx] = { ...all[idx], ...payload };
+            StorageService.saveProducts(all);
+            if (prevQty !== payload.quantity) {
+              InventoryModule.recordMovement({
+                productId: existing.id,
+                productName: payload.name,
+                sku: payload.sku,
+                previousQty: prevQty,
+                newQty: payload.quantity,
+                type: 'ADJUSTMENT',
+                reason: 'Edited via Product Catalog',
+              });
+            }
+            Utils.showToast('Product updated successfully.', 'success');
+          } else {
+            const newProd = {
+              id: Utils.generateId('PRD'),
+              ...payload,
+              batches:
+                payload.quantity > 0
+                  ? [{ batchNumber: `INIT-${Date.now().toString().slice(-4)}`, quantity: payload.quantity, expiryDate: payload.expiryDate }]
+                  : [],
+              createdAt: new Date().toISOString(),
+            };
+            all.unshift(newProd);
+            StorageService.saveProducts(all);
+            if (newProd.quantity > 0) {
+              InventoryModule.recordMovement({
+                productId: newProd.id,
+                productName: newProd.name,
+                sku: newProd.sku,
+                previousQty: 0,
+                newQty: newProd.quantity,
+                type: 'STOCK_IN',
+                reason: 'Initial Product Creation',
+              });
+            }
+            Utils.showToast('Product added to catalog.', 'success');
+          }
+
+          AppRouter.closeModal();
+          AppRouter.updateNavBadges();
+          this.render();
+        });
+      },
+
+      deleteProduct(productId) {
+        const products = StorageService.getProducts();
+        const target = products.find((p) => p.id === productId);
+        if (!target) return;
+
+        AppRouter.openModal(`
+          <div class="p-6 space-y-4">
+            <h3 class="text-lg font-bold text-navy-800">Delete Product?</h3>
+            <p class="text-sm text-slate-600">Are you sure you want to remove <strong>${Utils.escapeHTML(target.name)}</strong> (${Utils.escapeHTML(target.sku)})? Historical sales snapshots will remain intact.</p>
+            <div class="flex justify-end gap-2">
+              <button onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm">Cancel</button>
+              <button id="confirm-del-prod" class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold">Delete Product</button>
+            </div>
+          </div>
+        `);
+
+        document.getElementById('confirm-del-prod').addEventListener('click', () => {
+          StorageService.saveProducts(products.filter((p) => p.id !== productId));
+          Utils.showToast('Product deleted.', 'info');
+          AppRouter.closeModal();
+          AppRouter.updateNavBadges();
+          this.render();
+        });
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 7. INVENTORY & BATCH TRACKING MODULE (InventoryModule View)
+     * =========================================================================
+     */
+    InventoryModule.render = function () {
+      const root = document.getElementById('app-root');
+      const products = StorageService.getProducts();
+      const movements = StorageService.getInventoryMovements();
+
+      const lowStockItems = products.filter((p) => p.quantity > 0 && p.quantity <= p.minStock);
+      const outOfStockItems = products.filter((p) => p.quantity <= 0);
+      const expiringSoonItems = products.filter((p) => p.quantity > 0 && Utils.daysUntil(p.expiryDate) <= 60);
+
+      root.innerHTML = `
+        <div class="space-y-5">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h1 class="text-2xl font-bold text-navy-800">Inventory, Batches &amp; Expiry Control</h1>
+              <p class="text-sm text-slate-500">FEFO batch tracking, stock replenishment, manual stock-out, and immutable audit trail.</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="InventoryModule.openStockInModal()" class="px-4 py-2.5 rounded-xl bg-medteal-600 hover:bg-medteal-500 text-white text-sm font-semibold flex items-center gap-2 shadow-sm">
+                <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Stock In (Batch)
+              </button>
+              <button onclick="InventoryModule.openAdjustModal()" class="px-4 py-2.5 rounded-xl bg-navy-800 hover:bg-navy-700 text-white text-sm font-semibold flex items-center gap-2 shadow-sm">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Stock Out / Adjust
+              </button>
+            </div>
+          </div>
+
+          <!-- Alerts Summary Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white p-4 rounded-2xl border border-amber-200 shadow-card flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <span class="text-xs font-semibold text-slate-500">Low Stock Alerts</span>
+                <div class="text-2xl font-extrabold text-amber-600 tabular-nums">${lowStockItems.length}</div>
+                <span class="text-[11px] text-slate-400">${lowStockItems.map((i) => i.name).slice(0, 2).join(', ') || 'All levels healthy'}</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-red-200 shadow-card flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                <i data-lucide="package-x" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <span class="text-xs font-semibold text-slate-500">Out-of-Stock Items</span>
+                <div class="text-2xl font-extrabold text-red-600 tabular-nums">${outOfStockItems.length}</div>
+                <span class="text-[11px] text-slate-400">${outOfStockItems.map((i) => i.name).slice(0, 2).join(', ') || 'Zero stockouts'}</span>
+              </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-2xl border border-purple-200 shadow-card flex items-center gap-3.5">
+              <div class="w-11 h-11 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <i data-lucide="calendar-clock" class="w-6 h-6"></i>
+              </div>
+              <div>
+                <span class="text-xs font-semibold text-slate-500">Expiring Within 60 Days</span>
+                <div class="text-2xl font-extrabold text-purple-700 tabular-nums">${expiringSoonItems.length}</div>
+                <span class="text-[11px] text-slate-400">${expiringSoonItems.map((i) => `${i.name} (${i.expiryDate})`).slice(0, 1).join('') || 'No near-expiry batches'}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active Batch Breakdown Table -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+              <h2 class="font-bold text-navy-800 text-sm">Batch &amp; Expiry Status by Product</h2>
+              <span class="text-xs text-slate-400">Sorted by FEFO priority</span>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse">
+                <thead>
+                  <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                    <th class="py-3 px-4">Product</th>
+                    <th class="py-3 px-4">SKU</th>
+                    <th class="py-3 px-4 text-right">Total Qty</th>
+                    <th class="py-3 px-4 text-right">Min Stock</th>
+                    <th class="py-3 px-4">Active Batches &amp; Expiry Dates</th>
+                    <th class="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-sm">
+                  ${products
+                    .map((p) => {
+                      const days = Utils.daysUntil(p.expiryDate);
+                      const statusHtml =
+                        p.quantity <= 0
+                          ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-red-50 text-red-600">Out of Stock</span>`
+                          : p.quantity <= p.minStock
+                          ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700">Low Stock</span>`
+                          : days <= 60
+                          ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700">Expiring Soon (${days}d)</span>`
+                          : `<span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700">Optimal</span>`;
+
+                      const batchPills =
+                        Array.isArray(p.batches) && p.batches.length > 0
+                          ? p.batches
+                              .map(
+                                (b) =>
+                                  `<span class="inline-flex items-center gap-1 px-2 py-0.5 mr-1.5 mb-1 rounded-md bg-slate-100 text-slate-700 text-xs font-mono">
+                                    <strong>${Utils.escapeHTML(b.batchNumber)}</strong>: ${b.quantity}u (Exp: ${b.expiryDate || 'N/A'})
+                                  </span>`
+                              )
+                              .join('')
+                          : `<span class="text-xs text-slate-400">No active batches</span>`;
+
+                      return `
+                        <tr>
+                          <td class="py-3 px-4 font-semibold text-navy-800">${Utils.escapeHTML(p.name)}</td>
+                          <td class="py-3 px-4 font-mono text-xs text-slate-500">${Utils.escapeHTML(p.sku)}</td>
+                          <td class="py-3 px-4 text-right font-bold tabular-nums">${p.quantity}</td>
+                          <td class="py-3 px-4 text-right text-slate-500 tabular-nums">${p.minStock}</td>
+                          <td class="py-3 px-4">${batchPills}</td>
+                          <td class="py-3 px-4">${statusHtml}</td>
+                        </tr>
+                      `;
+                    })
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Stock Movement Audit History -->
+          <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+            <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70">
+              <h2 class="font-bold text-navy-800 text-sm">Stock Movement History (Audit Log)</h2>
+            </div>
+            <div class="overflow-x-auto max-h-[420px]">
+              <table class="w-full text-left border-collapse">
+                <thead class="sticky top-0 bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                  <tr>
+                    <th class="py-3 px-4">Date &amp; Time</th>
+                    <th class="py-3 px-4">Product</th>
+                    <th class="py-3 px-4">Type</th>
+                    <th class="py-3 px-4">Batch</th>
+                    <th class="py-3 px-4 text-right">Prev Qty</th>
+                    <th class="py-3 px-4 text-right">New Qty</th>
+                    <th class="py-3 px-4">Reason</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 text-xs">
+                  ${movements
+                    .map((m) => {
+                      const isPositive = m.newQty > m.previousQty;
+                      return `
+                        <tr>
+                          <td class="py-2.5 px-4 text-slate-500 whitespace-nowrap">${Utils.formatDate(m.date)}</td>
+                          <td class="py-2.5 px-4 font-semibold text-navy-800">${Utils.escapeHTML(m.productName)} <span class="font-mono text-slate-400">(${Utils.escapeHTML(m.sku)})</span></td>
+                          <td class="py-2.5 px-4">
+                            <span class="px-2 py-0.5 rounded font-bold ${
+                              isPositive ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'
+                            }">${Utils.escapeHTML(m.type)}</span>
+                          </td>
+                          <td class="py-2.5 px-4 font-mono text-slate-500">${Utils.escapeHTML(m.batchNumber || '—')}</td>
+                          <td class="py-2.5 px-4 text-right tabular-nums text-slate-500">${m.previousQty}</td>
+                          <td class="py-2.5 px-4 text-right tabular-nums font-bold text-navy-800">${m.newQty}</td>
+                          <td class="py-2.5 px-4 text-slate-600">${Utils.escapeHTML(m.reason)}</td>
+                        </tr>
+                      `;
+                    })
+                    .join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      `;
+      if (window.lucide) lucide.createIcons();
+    };
+
+    InventoryModule.openStockInModal = function () {
+      const products = StorageService.getProducts();
+      AppRouter.openModal(`
+        <form id="stock-in-form" class="p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="text-lg font-bold text-navy-800">Stock In — Receive Supplier Batch</h3>
+            <button type="button" onclick="AppRouter.closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Select Product *</label>
+              <select name="productId" required class="w-full px-3 py-2 rounded-xl border border-slate-200">
+                ${products.map((p) => `<option value="${p.id}">${Utils.escapeHTML(p.name)} (${Utils.escapeHTML(p.sku)}) — Current: ${p.quantity}</option>`).join('')}
+              </select>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Quantity Added *</label>
+                <input name="quantity" type="number" min="1" required placeholder="50" class="w-full px-3 py-2 rounded-xl border border-slate-200 tabular-nums" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Batch Number *</label>
+                <input name="batchNumber" required placeholder="BCH-2026-09" class="w-full px-3 py-2 font-mono rounded-xl border border-slate-200" />
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Batch Expiry Date *</label>
+              <input name="expiryDate" type="date" required class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Reference / Reason</label>
+              <input name="reason" placeholder="Supplier Invoice #INV-882" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm">Cancel</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-medteal-600 text-white text-sm font-semibold">Receive Stock</button>
+          </div>
+        </form>
+      `);
+
+      document.getElementById('stock-in-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        try {
+          InventoryModule.addStock({
+            productId: fd.get('productId'),
+            quantity: Number(fd.get('quantity')),
+            batchNumber: fd.get('batchNumber'),
+            expiryDate: fd.get('expiryDate'),
+            reason: fd.get('reason').trim() || 'Supplier Stock In',
+          });
+          Utils.showToast('Batch received and stock updated.', 'success');
+          AppRouter.closeModal();
+          InventoryModule.render();
+        } catch (err) {
+          Utils.showToast(err.message, 'error');
+        }
+      });
+    };
+
+    InventoryModule.openAdjustModal = function () {
+      const products = StorageService.getProducts();
+      AppRouter.openModal(`
+        <form id="stock-adjust-form" class="p-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h3 class="text-lg font-bold text-navy-800">Stock Out / Inventory Adjustment</h3>
+            <button type="button" onclick="AppRouter.closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+          </div>
+          <div class="space-y-3 text-sm">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Select Product *</label>
+              <select name="productId" required class="w-full px-3 py-2 rounded-xl border border-slate-200">
+                ${products.map((p) => `<option value="${p.id}">${Utils.escapeHTML(p.name)} — Current: ${p.quantity}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Operation Type</label>
+              <select id="adj-mode-select" name="mode" class="w-full px-3 py-2 rounded-xl border border-slate-200">
+                <option value="STOCK_OUT">Stock Out (Damaged / Expired / Internal Use)</option>
+                <option value="ADJUSTMENT">Audit Count Correction (Set Exact New Quantity)</option>
+              </select>
+            </div>
+            <div>
+              <label id="adj-qty-label" class="block text-xs font-semibold text-slate-700 mb-1">Quantity to Remove *</label>
+              <input name="qtyValue" type="number" min="0" required class="w-full px-3 py-2 rounded-xl border border-slate-200 tabular-nums" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Reason *</label>
+              <input name="reason" required placeholder="e.g., Damaged packaging, Physical cycle count" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+            </div>
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <button type="button" onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm">Cancel</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-navy-800 text-white text-sm font-semibold">Apply Adjustment</button>
+          </div>
+        </form>
+      `);
+
+      document.getElementById('adj-mode-select').addEventListener('change', (e) => {
+        document.getElementById('adj-qty-label').textContent =
+          e.target.value === 'STOCK_OUT' ? 'Quantity to Remove *' : 'Exact New Physical Quantity *';
+      });
+
+      document.getElementById('stock-adjust-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const fd = new FormData(e.target);
+        const mode = fd.get('mode');
+        const val = Number(fd.get('qtyValue'));
+        try {
+          InventoryModule.removeOrAdjustStock({
+            productId: fd.get('productId'),
+            mode,
+            deltaQuantity: val,
+            newQuantity: val,
+            reason: fd.get('reason').trim(),
+          });
+          Utils.showToast('Inventory updated and logged.', 'success');
+          AppRouter.closeModal();
+          InventoryModule.render();
+        } catch (err) {
+          Utils.showToast(err.message, 'error');
+        }
+      });
+    };
+
+    /**
+     * =========================================================================
+     * 8. CUSTOMERS MANAGEMENT MODULE (CustomersModule)
+     * =========================================================================
+     */
+    const CustomersModule = {
+      render() {
+        const root = document.getElementById('app-root');
+        const customers = StorageService.getCustomers();
+
+        root.innerHTML = `
+          <div class="space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h1 class="text-2xl font-bold text-navy-800">Healthcare Clients &amp; Customers</h1>
+                <p class="text-sm text-slate-500">Manage pharmacies, hospitals, clinics, and individual accounts with balance tracking.</p>
+              </div>
+              <button onclick="CustomersModule.openCustomerModal()"
+                class="px-4 py-2.5 rounded-xl bg-medblue-600 hover:bg-navy-800 text-white text-sm font-semibold flex items-center gap-2 shadow-sm self-start sm:self-auto">
+                <i data-lucide="user-plus" class="w-4 h-4"></i> Add Customer
+              </button>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                  <thead>
+                    <tr class="bg-slate-50 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                      <th class="py-3.5 px-4">Customer</th>
+                      <th class="py-3.5 px-4">Type</th>
+                      <th class="py-3.5 px-4">Phone &amp; Address</th>
+                      <th class="py-3.5 px-4 text-right">Orders</th>
+                      <th class="py-3.5 px-4 text-right">Total Spending</th>
+                      <th class="py-3.5 px-4 text-right">Outstanding Balance</th>
+                      <th class="py-3.5 px-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-sm">
+                    ${customers
+                      .map(
+                        (c) => `
+                      <tr class="hover:bg-slate-50/70">
+                        <td class="py-3 px-4">
+                          <div class="font-bold text-navy-800">${Utils.escapeHTML(c.fullName)}</div>
+                          <div class="text-[11px] font-mono text-slate-400">${Utils.escapeHTML(c.id)}</div>
+                        </td>
+                        <td class="py-3 px-4">
+                          <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-medblue-50 text-medblue-600 border border-medblue-100">${Utils.escapeHTML(c.type)}</span>
+                        </td>
+                        <td class="py-3 px-4 text-xs text-slate-600">
+                          <div class="font-medium">${Utils.escapeHTML(c.phone)}</div>
+                          <div class="text-slate-400">${Utils.escapeHTML(c.address || '—')}</div>
+                        </td>
+                        <td class="py-3 px-4 text-right font-semibold tabular-nums">${c.totalOrders || 0}</td>
+                        <td class="py-3 px-4 text-right font-bold text-navy-800 tabular-nums">${Utils.formatCurrency(c.totalSpending || 0)}</td>
+                        <td class="py-3 px-4 text-right tabular-nums">
+                          ${
+                            (c.outstandingBalance || 0) > 0
+                              ? `<span class="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700">${Utils.formatCurrency(c.outstandingBalance)}</span>`
+                              : `<span class="text-xs text-slate-400">Clear</span>`
+                          }
+                        </td>
+                        <td class="py-3 px-4 text-right whitespace-nowrap">
+                          <button onclick="CustomersModule.openHistoryModal('${c.id}')" class="p-1.5 rounded-lg text-medteal-600 hover:bg-medteal-50" title="Purchase History">
+                            <i data-lucide="receipt" class="w-4 h-4"></i>
+                          </button>
+                          <button onclick="CustomersModule.openCustomerModal('${c.id}')" class="p-1.5 rounded-lg text-medblue-600 hover:bg-medblue-50" title="Edit">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i>
+                          </button>
+                        </td>
+                      </tr>
+                    `
+                      )
+                      .join('')}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        `;
+        if (window.lucide) lucide.createIcons();
+      },
+
+      openCustomerModal(customerId = null, selectInPosAfter = false) {
+        const customers = StorageService.getCustomers();
+        const existing = customerId ? customers.find((c) => c.id === customerId) : null;
+
+        AppRouter.openModal(`
+          <form id="customer-crud-form" class="p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 class="text-lg font-bold text-navy-800">${existing ? 'Edit Customer' : 'Add New Customer'}</h3>
+              <button type="button" onclick="AppRouter.closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-3 text-sm">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Full Name / Institution *</label>
+                <input name="fullName" required value="${Utils.escapeHTML(existing?.fullName || '')}" placeholder="e.g. Al-Amal Medical Center"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Number *</label>
+                  <input name="phone" required value="${Utils.escapeHTML(existing?.phone || '')}" placeholder="+20 100 000 0000"
+                    class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Customer Type *</label>
+                  <select name="type" class="w-full px-3 py-2 rounded-xl border border-slate-200">
+                    ${['Pharmacy', 'Hospital', 'Clinic', 'Individual', 'Other']
+                      .map((t) => `<option value="${t}" ${existing?.type === t ? 'selected' : ''}>${t}</option>`)
+                      .join('')}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Address</label>
+                <input name="address" value="${Utils.escapeHTML(existing?.address || '')}" placeholder="Street, District, City"
+                  class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+              <button type="button" onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm">Cancel</button>
+              <button type="submit" class="px-5 py-2 rounded-xl bg-medblue-600 text-white text-sm font-semibold">Save Customer</button>
+            </div>
+          </form>
+        `);
+
+        document.getElementById('customer-crud-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          const payload = {
+            fullName: fd.get('fullName').trim(),
+            phone: fd.get('phone').trim(),
+            type: fd.get('type'),
+            address: fd.get('address').trim(),
+          };
+          const check = ValidationService.validateCustomer(payload);
+          if (!check.valid) {
+            Utils.showToast(check.errors[0], 'error');
+            return;
+          }
+
+          const all = StorageService.getCustomers();
+          if (existing) {
+            const idx = all.findIndex((c) => c.id === existing.id);
+            all[idx] = { ...all[idx], ...payload };
+            StorageService.saveCustomers(all);
+            Utils.showToast('Customer updated.', 'success');
+          } else {
+            const created = {
+              id: Utils.generateId('CUST'),
+              ...payload,
+              totalOrders: 0,
+              totalSpending: 0,
+              outstandingBalance: 0,
+              createdAt: new Date().toISOString(),
+            };
+            all.unshift(created);
+            StorageService.saveCustomers(all);
+            if (selectInPosAfter) {
+              CartModule.customerId = created.id;
+            }
+            Utils.showToast('Customer added.', 'success');
+          }
+
+          AppRouter.closeModal();
+          if (AppRouter.currentRoute === 'pos') POSModule.renderCart();
+          else if (AppRouter.currentRoute === 'customers') this.render();
+        });
+      },
+
+      openHistoryModal(customerId) {
+        const customer = StorageService.getCustomers().find((c) => c.id === customerId);
+        if (!customer) return;
+        const custSales = StorageService.getSales().filter((s) => s.customerId === customerId);
+
+        AppRouter.openModal(`
+          <div class="p-6 space-y-4">
+            <div class="flex items-start justify-between border-b border-slate-200 pb-3">
+              <div>
+                <h3 class="text-lg font-bold text-navy-800">${Utils.escapeHTML(customer.fullName)}</h3>
+                <p class="text-xs text-slate-500">${Utils.escapeHTML(customer.type)} • ${Utils.escapeHTML(customer.phone)}</p>
+              </div>
+              <button onclick="AppRouter.closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="grid grid-cols-3 gap-3 text-center">
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-[11px] text-slate-500 block">Total Orders</span>
+                <span class="text-lg font-bold text-navy-800 tabular-nums">${customer.totalOrders || 0}</span>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-[11px] text-slate-500 block">Total Spending</span>
+                <span class="text-lg font-bold text-medblue-600 tabular-nums">${Utils.formatCurrency(customer.totalSpending || 0)}</span>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span class="text-[11px] text-slate-500 block">Balance Due</span>
+                <span class="text-lg font-bold text-amber-600 tabular-nums">${Utils.formatCurrency(customer.outstandingBalance || 0)}</span>
+              </div>
+            </div>
+
+            <div class="max-h-64 overflow-y-auto border border-slate-200 rounded-xl">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase">
+                  <tr>
+                    <th class="py-2 px-3">Sale ID</th>
+                    <th class="py-2 px-3">Date</th>
+                    <th class="py-2 px-3 text-right">Total</th>
+                    <th class="py-2 px-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                  ${
+                    custSales.length === 0
+                      ? `<tr><td colspan="4" class="py-6 text-center text-slate-400">No purchase history for this customer.</td></tr>`
+                      : custSales
+                          .map(
+                            (s) => `
+                        <tr>
+                          <td class="py-2 px-3 font-mono font-semibold">${Utils.escapeHTML(s.id)}</td>
+                          <td class="py-2 px-3">${Utils.formatDate(s.createdAt)}</td>
+                          <td class="py-2 px-3 text-right font-bold tabular-nums">${Utils.formatCurrency(s.grandTotal)}</td>
+                          <td class="py-2 px-3">${Utils.escapeHTML(s.status)}</td>
+                        </tr>
+                      `
+                          )
+                          .join('')
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `);
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 9. DASHBOARD & ANALYTICS REPORTS MODULE (ReportsModule)
+     * =========================================================================
+     */
+    const ReportsModule = {
+      charts: {},
+
+      destroyCharts() {
+        Object.values(this.charts).forEach((ch) => {
+          if (ch && typeof ch.destroy === 'function') ch.destroy();
+        });
+        this.charts = {};
+      },
+
+      render() {
+        this.destroyCharts();
+        const root = document.getElementById('app-root');
+        const products = StorageService.getProducts();
+        const customers = StorageService.getCustomers();
+        const sales = StorageService.getSales().filter((s) => s.status !== 'Cancelled');
+        const returns = StorageService.getReturns();
+
+        const todayStr = Utils.todayISO();
+        const totalRefunded = returns.reduce((sum, r) => sum + (Number(r.totalRefund) || 0), 0);
+
+        const todaysSales = sales
+          .filter((s) => s.createdAt.startsWith(todayStr))
+          .reduce((sum, s) => sum + s.grandTotal, 0);
+
+        const totalRevenue = Math.max(
+          0,
+          sales.reduce((sum, s) => sum + s.grandTotal, 0) - totalRefunded
+        );
+
+        let totalCOGS = 0;
+        sales.forEach((s) => {
+          s.items.forEach((i) => {
+            totalCOGS += (Number(i.purchasePrice) || 0) * i.quantity;
+          });
+        });
+        const estimatedGrossProfit = Math.max(0, totalRevenue - totalCOGS);
+
+        const lowStockCount = products.filter((p) => p.quantity > 0 && p.quantity <= p.minStock).length;
+        const outOfStockCount = products.filter((p) => p.quantity <= 0).length;
+
+        root.innerHTML = `
+          <div class="space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <h1 class="text-2xl font-bold text-navy-800">Executive Dashboard &amp; Analytics</h1>
+                <p class="text-sm text-slate-500">Real-time financial KPIs, inventory health, and sales distribution.</p>
+              </div>
+              <span class="text-xs font-medium text-slate-500 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                Updated live from local ledger
+              </span>
+            </div>
+
+            <!-- 8 Dynamic KPI Cards -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
+              ${this.kpiCard("Today's Sales", Utils.formatCurrency(todaysSales), 'trending-up', 'text-medteal-600 bg-medteal-50')}
+              ${this.kpiCard('Total Revenue', Utils.formatCurrency(totalRevenue), 'wallet', 'text-medblue-600 bg-medblue-50')}
+              ${this.kpiCard('Estimated Gross Profit', Utils.formatCurrency(estimatedGrossProfit), 'badge-dollar-sign', 'text-emerald-600 bg-emerald-50')}
+              ${this.kpiCard('Total Orders', sales.length, 'shopping-bag', 'text-navy-800 bg-slate-100')}
+              ${this.kpiCard('Total Products', products.length, 'package', 'text-medblue-600 bg-medblue-50')}
+              ${this.kpiCard('Low Stock Alerts', lowStockCount, 'alert-triangle', 'text-amber-600 bg-amber-50')}
+              ${this.kpiCard('Out-of-Stock', outOfStockCount, 'package-x', 'text-red-600 bg-red-50')}
+              ${this.kpiCard('Total Customers', customers.length, 'users', 'text-medteal-600 bg-medteal-50')}
+            </div>
+
+            <!-- 4 Interactive Chart.js Visualizations -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
+                <h3 class="font-bold text-navy-800 text-sm mb-3">Daily Sales (Last 7 Days)</h3>
+                <div class="h-60"><canvas id="chart-daily-sales"></canvas></div>
+              </div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
+                <h3 class="font-bold text-navy-800 text-sm mb-3">Monthly Revenue Trend</h3>
+                <div class="h-60"><canvas id="chart-monthly-sales"></canvas></div>
+              </div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
+                <h3 class="font-bold text-navy-800 text-sm mb-3">Top-Selling Medical Supplies (Units)</h3>
+                <div class="h-60"><canvas id="chart-top-products"></canvas></div>
+              </div>
+              <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-card">
+                <h3 class="font-bold text-navy-800 text-sm mb-3">Payment Method Distribution</h3>
+                <div class="h-60 flex items-center justify-center"><canvas id="chart-payment-methods"></canvas></div>
+              </div>
+            </div>
+
+            <!-- Recent Sales & Inventory Alerts -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 font-bold text-sm text-navy-800">Recent Completed Sales</div>
+                <div class="divide-y divide-slate-100 text-xs">
+                  ${sales
+                    .slice(0, 5)
+                    .map(
+                      (s) => `
+                    <div class="px-5 py-3 flex items-center justify-between">
+                      <div>
+                        <span class="font-mono font-bold text-navy-800">${Utils.escapeHTML(s.id)}</span>
+                        <span class="text-slate-500 ml-2">${Utils.escapeHTML(s.customerName)}</span>
+                      </div>
+                      <div class="font-bold text-medblue-600 tabular-nums">${Utils.formatCurrency(s.grandTotal)}</div>
+                    </div>
+                  `
+                    )
+                    .join('')}
+                </div>
+              </div>
+
+              <div class="bg-white rounded-2xl border border-slate-200 shadow-card overflow-hidden">
+                <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50/70 font-bold text-sm text-navy-800">Critical Inventory Alerts</div>
+                <div class="divide-y divide-slate-100 text-xs">
+                  ${products
+                    .filter((p) => p.quantity <= p.minStock || Utils.daysUntil(p.expiryDate) <= 60)
+                    .slice(0, 5)
+                    .map(
+                      (p) => `
+                    <div class="px-5 py-3 flex items-center justify-between">
+                      <div>
+                        <span class="font-bold text-navy-800">${Utils.escapeHTML(p.name)}</span>
+                        <span class="text-slate-400 font-mono ml-1.5">${Utils.escapeHTML(p.sku)}</span>
+                      </div>
+                      <span class="px-2 py-0.5 rounded-full font-bold ${
+                        p.quantity <= 0
+                          ? 'bg-red-50 text-red-600'
+                          : p.quantity <= p.minStock
+                          ? 'bg-amber-50 text-amber-700'
+                          : 'bg-purple-50 text-purple-700'
+                      }">
+                        ${p.quantity <= 0 ? 'Out of Stock' : p.quantity <= p.minStock ? `Low (${p.quantity})` : `Exp ${p.expiryDate}`}
+                      </span>
+                    </div>
+                  `
+                    )
+                    .join('') || `<div class="p-6 text-center text-slate-400">All stock levels and expiry dates are optimal.</div>`}
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+        this.initCharts(sales);
+      },
+
+      kpiCard(label, value, icon, iconClass) {
+        return `
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-card flex items-start justify-between gap-2">
+            <div>
+              <span class="text-xs font-medium text-slate-500 block">${label}</span>
+              <span class="text-lg sm:text-xl font-extrabold text-navy-800 tabular-nums mt-1 block">${value}</span>
+            </div>
+            <div class="w-9 h-9 rounded-xl ${iconClass} flex items-center justify-center shrink-0">
+              <i data-lucide="${icon}" class="w-4 h-4"></i>
+            </div>
+          </div>
+        `;
+      },
+
+      initCharts(sales) {
+        if (!window.Chart) return;
+
+        // 1. Daily Sales (Last 7 Days)
+        const last7Labels = [];
+        const last7Totals = [];
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date();
+          d.setDate(d.getDate() - i);
+          const iso = d.toISOString().split('T')[0];
+          last7Labels.push(d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
+          const daySum = sales
+            .filter((s) => s.createdAt.startsWith(iso))
+            .reduce((sum, s) => sum + s.grandTotal, 0);
+          last7Totals.push(daySum);
+        }
+
+        this.charts.daily = new Chart(document.getElementById('chart-daily-sales'), {
+          type: 'bar',
+          data: {
+            labels: last7Labels,
+            datasets: [{ label: 'Revenue', data: last7Totals, backgroundColor: '#1D63B8', borderRadius: 8 }],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+        });
+
+        // 2. Monthly Sales
+        const monthMap = {};
+        sales.forEach((s) => {
+          const key = s.createdAt.slice(0, 7);
+          monthMap[key] = (monthMap[key] || 0) + s.grandTotal;
+        });
+        const monthKeys = Object.keys(monthMap).sort();
+        this.charts.monthly = new Chart(document.getElementById('chart-monthly-sales'), {
+          type: 'line',
+          data: {
+            labels: monthKeys.length ? monthKeys : [new Date().toISOString().slice(0, 7)],
+            datasets: [
+              {
+                label: 'Monthly Sales',
+                data: monthKeys.length ? monthKeys.map((k) => monthMap[k]) : [0],
+                borderColor: '#0D9488',
+                backgroundColor: 'rgba(13, 148, 136, 0.14)',
+                fill: true,
+                tension: 0.35,
+              },
+            ],
+          },
+          options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } },
+        });
+
+        // 3. Top Selling Products
+        const prodTotals = {};
+        sales.forEach((s) => {
+          s.items.forEach((i) => {
+            prodTotals[i.name] = (prodTotals[i.name] || 0) + i.quantity;
+          });
+        });
+        const topEntries = Object.entries(prodTotals)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5);
+
+        this.charts.topProducts = new Chart(document.getElementById('chart-top-products'), {
+          type: 'bar',
+          data: {
+            labels: topEntries.map((e) => (e[0].length > 22 ? e[0].slice(0, 22) + '…' : e[0])),
+            datasets: [{ label: 'Units Sold', data: topEntries.map((e) => e[1]), backgroundColor: '#0F2942', borderRadius: 6 }],
+          },
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+          },
+        });
+
+        // 4. Payment Method Distribution
+        const payMap = { Cash: 0, Instapay: 0, 'Mobile Wallet': 0, 'Bank Transfer': 0 };
+        sales.forEach((s) => {
+          payMap[s.paymentMethod] = (payMap[s.paymentMethod] || 0) + s.grandTotal;
+        });
+        this.charts.payments = new Chart(document.getElementById('chart-payment-methods'), {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(payMap),
+            datasets: [
+              {
+                data: Object.values(payMap),
+                backgroundColor: ['#0F2942', '#1D63B8', '#0D9488', '#64748B'],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: { responsive: true, maintainAspectRatio: false, cutout: '64%' },
+        });
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 10. THERMAL / A4 RECEIPT MODULE (ReceiptModule)
+     * =========================================================================
+     */
+    const ReceiptModule = {
+      buildReceiptHTML(sale) {
+        const settings = StorageService.getSettings();
+        return `
+          <div class="bg-white text-slate-900 p-5 rounded-xl border border-slate-200 max-w-sm mx-auto font-sans text-xs leading-relaxed">
+            <div class="text-center border-b border-dashed border-slate-300 pb-3 mb-3">
+              <div class="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-navy-800 text-white font-extrabold text-base mb-1">+</div>
+              <h2 class="font-extrabold text-base text-navy-800 uppercase tracking-tight">${Utils.escapeHTML(settings.brandName)}</h2>
+              <p class="text-[11px] text-slate-500">${Utils.escapeHTML(settings.address)}</p>
+              <p class="text-[11px] text-slate-500">Tel: ${Utils.escapeHTML(settings.phone)} • ${Utils.escapeHTML(settings.taxId || '')}</p>
+            </div>
+
+            <div class="space-y-0.5 text-[11px] border-b border-dashed border-slate-300 pb-2.5 mb-2.5">
+              <div class="flex justify-between"><span class="text-slate-500">Receipt #:</span><strong class="font-mono">${Utils.escapeHTML(sale.id)}</strong></div>
+              <div class="flex justify-between"><span class="text-slate-500">Date:</span><span>${Utils.formatDate(sale.createdAt)}</span></div>
+              <div class="flex justify-between"><span class="text-slate-500">Customer:</span><strong>${Utils.escapeHTML(sale.customerName)}</strong></div>
+              <div class="flex justify-between"><span class="text-slate-500">Status:</span><span>${Utils.escapeHTML(sale.status)}</span></div>
+            </div>
+
+            <table class="w-full text-[11px] mb-2.5">
+              <thead>
+                <tr class="border-b border-slate-300 text-slate-500">
+                  <th class="py-1 text-left">Item</th>
+                  <th class="py-1 text-center">Qty</th>
+                  <th class="py-1 text-right">Price</th>
+                  <th class="py-1 text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                ${sale.items
+                  .map(
+                    (i) => `
+                  <tr>
+                    <td class="py-1.5 pr-1 font-medium">${Utils.escapeHTML(i.name)}</td>
+                    <td class="py-1.5 text-center tabular-nums">${i.quantity}</td>
+                    <td class="py-1.5 text-right tabular-nums">${Number(i.unitPrice).toFixed(2)}</td>
+                    <td class="py-1.5 text-right font-semibold tabular-nums">${Number(i.subtotal).toFixed(2)}</td>
+                  </tr>
+                `
+                  )
+                  .join('')}
+              </tbody>
+            </table>
+
+            <div class="border-t border-dashed border-slate-300 pt-2 space-y-1 text-[11px]">
+              <div class="flex justify-between"><span>Subtotal:</span><span class="tabular-nums">${Utils.formatCurrency(sale.subtotal)}</span></div>
+              ${sale.discount > 0 ? `<div class="flex justify-between"><span>Discount:</span><span class="tabular-nums">-${Utils.formatCurrency(sale.discount)}</span></div>` : ''}
+              ${sale.shipping > 0 ? `<div class="flex justify-between"><span>Shipping:</span><span class="tabular-nums">${Utils.formatCurrency(sale.shipping)}</span></div>` : ''}
+              <div class="flex justify-between font-extrabold text-sm text-navy-800 pt-1 border-t border-slate-200">
+                <span>GRAND TOTAL:</span><span class="tabular-nums">${Utils.formatCurrency(sale.grandTotal)}</span>
+              </div>
+              <div class="flex justify-between pt-1"><span>Payment (${Utils.escapeHTML(sale.paymentMethod)}):</span><span class="tabular-nums font-semibold">${Utils.formatCurrency(sale.paidAmount)}</span></div>
+              <div class="flex justify-between"><span>Remaining Balance:</span><span class="tabular-nums font-semibold">${Utils.formatCurrency(sale.remainingBalance)}</span></div>
+            </div>
+
+            <div class="text-center border-t border-dashed border-slate-300 mt-3 pt-3 text-[10px] text-slate-500">
+              <p class="font-semibold text-slate-700 mb-0.5">Thank You For Your Business!</p>
+              <p>${Utils.escapeHTML(settings.receiptFooter)}</p>
+            </div>
+          </div>
+        `;
+      },
+
+      openReceiptModal(saleId) {
+        const sale = StorageService.getSales().find((s) => s.id === saleId);
+        if (!sale) return;
+
+        const receiptHtml = this.buildReceiptHTML(sale);
+        document.getElementById('print-area').innerHTML = receiptHtml;
+
+        AppRouter.openModal(`
+          <div class="p-6 space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+              <h3 class="text-lg font-bold text-navy-800">Printable Receipt Preview</h3>
+              <button onclick="AppRouter.closeModal()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="bg-slate-100 p-4 rounded-2xl">
+              ${receiptHtml}
+            </div>
+            <div class="flex justify-end gap-2">
+              <button onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600">Close</button>
+              <button onclick="window.print()" class="px-5 py-2 rounded-xl bg-navy-800 hover:bg-medblue-600 text-white text-sm font-semibold flex items-center gap-2">
+                <i data-lucide="printer" class="w-4 h-4"></i> Print Receipt
+              </button>
+            </div>
+          </div>
+        `);
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 11. SETTINGS & DATA BACKUP MODULE (SettingsModule)
+     * =========================================================================
+     */
+    const SettingsModule = {
+      render() {
+        const root = document.getElementById('app-root');
+        const settings = StorageService.getSettings();
+
+        root.innerHTML = `
+          <div class="max-w-4xl mx-auto space-y-5">
+            <div>
+              <h1 class="text-2xl font-bold text-navy-800">System Settings &amp; Local Data Backup</h1>
+              <p class="text-sm text-slate-500">Configure brand receipt details, currency, JSON full backup/restore, and CSV exports.</p>
+            </div>
+
+            <!-- Store Profile Form -->
+            <form id="settings-form" class="bg-white p-6 rounded-2xl border border-slate-200 shadow-card space-y-4">
+              <h2 class="font-bold text-navy-800 text-base border-b border-slate-100 pb-2">Pharmacy / Brand Profile</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Brand / Store Name</label>
+                  <input name="brandName" required value="${Utils.escapeHTML(settings.brandName)}" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Phone Number</label>
+                  <input name="phone" value="${Utils.escapeHTML(settings.phone)}" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Clinic / Warehouse Address</label>
+                  <input name="address" value="${Utils.escapeHTML(settings.address)}" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Tax Registration / License ID</label>
+                  <input name="taxId" value="${Utils.escapeHTML(settings.taxId || '')}" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Currency Symbol</label>
+                    <input name="currency" required value="${Utils.escapeHTML(settings.currency)}" placeholder="EGP / $" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                  </div>
+                  <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Default Shipping</label>
+                    <input name="defaultShipping" type="number" min="0" step="any" value="${settings.defaultShipping || 0}" class="w-full px-3 py-2 rounded-xl border border-slate-200 tabular-nums" />
+                  </div>
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="block text-xs font-semibold text-slate-700 mb-1">Receipt Footer Policy</label>
+                  <input name="receiptFooter" value="${Utils.escapeHTML(settings.receiptFooter || '')}" class="w-full px-3 py-2 rounded-xl border border-slate-200" />
+                </div>
+              </div>
+              <div class="flex justify-end">
+                <button type="submit" class="px-5 py-2.5 rounded-xl bg-medblue-600 hover:bg-navy-800 text-white text-sm font-semibold">Save Settings</button>
+              </div>
+            </form>
+
+            <!-- Data Portability & Backup -->
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-card space-y-4">
+              <h2 class="font-bold text-navy-800 text-base border-b border-slate-100 pb-2">Backup, Import &amp; CSV Exports</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <button id="btn-export-json" class="p-3.5 rounded-xl border border-slate-200 hover:border-medblue-500 text-left flex items-center gap-3 transition-all">
+                  <div class="w-9 h-9 rounded-lg bg-medblue-50 text-medblue-600 flex items-center justify-center shrink-0"><i data-lucide="download" class="w-4 h-4"></i></div>
+                  <div>
+                    <div class="font-bold text-xs text-navy-800">Export Full Backup (JSON)</div>
+                    <div class="text-[11px] text-slate-400">All products, sales, customers &amp; logs</div>
+                  </div>
+                </button>
+
+                <label class="p-3.5 rounded-xl border border-slate-200 hover:border-medteal-500 text-left flex items-center gap-3 cursor-pointer transition-all">
+                  <div class="w-9 h-9 rounded-lg bg-medteal-50 text-medteal-600 flex items-center justify-center shrink-0"><i data-lucide="upload" class="w-4 h-4"></i></div>
+                  <div>
+                    <div class="font-bold text-xs text-navy-800">Restore Backup (JSON)</div>
+                    <div class="text-[11px] text-slate-400">Import previously saved JSON file</div>
+                  </div>
+                  <input id="input-import-json" type="file" accept=".json" class="hidden" />
+                </label>
+
+                <button id="btn-export-products-csv" class="p-3.5 rounded-xl border border-slate-200 hover:border-navy-600 text-left flex items-center gap-3 transition-all">
+                  <div class="w-9 h-9 rounded-lg bg-slate-100 text-navy-800 flex items-center justify-center shrink-0"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></div>
+                  <div>
+                    <div class="font-bold text-xs text-navy-800">Export Products (CSV)</div>
+                    <div class="text-[11px] text-slate-400">Excel-ready catalog &amp; stock sheet</div>
+                  </div>
+                </button>
+
+                <button id="btn-export-sales-csv" class="p-3.5 rounded-xl border border-slate-200 hover:border-navy-600 text-left flex items-center gap-3 transition-all">
+                  <div class="w-9 h-9 rounded-lg bg-slate-100 text-navy-800 flex items-center justify-center shrink-0"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></div>
+                  <div>
+                    <div class="font-bold text-xs text-navy-800">Export Sales Ledger (CSV)</div>
+                    <div class="text-[11px] text-slate-400">All invoices &amp; payment methods</div>
+                  </div>
+                </button>
+
+                <button id="btn-export-inventory-csv" class="p-3.5 rounded-xl border border-slate-200 hover:border-navy-600 text-left flex items-center gap-3 transition-all">
+                  <div class="w-9 h-9 rounded-lg bg-slate-100 text-navy-800 flex items-center justify-center shrink-0"><i data-lucide="file-spreadsheet" class="w-4 h-4"></i></div>
+                  <div>
+                    <div class="font-bold text-xs text-navy-800">Export Stock Movements (CSV)</div>
+                    <div class="text-[11px] text-slate-400">Complete audit history CSV</div>
+                  </div>
+                </button>
+
+                <button id="btn-reset-demo" class="p-3.5 rounded-xl border border-red-200 bg-red-50/40 hover:bg-red-50 text-left flex items-center gap-3 transition-all">
+                  <div class="w-9 h-9 rounded-lg bg-red-100 text-red-600 flex items-center justify-center shrink-0"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></div>
+                  <div>
+                    <div class="font-bold text-xs text-red-700">Reset Demo Data</div>
+                    <div class="text-[11px] text-red-500">Restore default medical seed records</div>
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        if (window.lucide) lucide.createIcons();
+
+        document.getElementById('settings-form').addEventListener('submit', (e) => {
+          e.preventDefault();
+          const fd = new FormData(e.target);
+          StorageService.saveSettings({
+            brandName: fd.get('brandName').trim(),
+            phone: fd.get('phone').trim(),
+            address: fd.get('address').trim(),
+            taxId: fd.get('taxId').trim(),
+            currency: fd.get('currency').trim() || 'EGP',
+            defaultShipping: Number(fd.get('defaultShipping')) || 0,
+            receiptFooter: fd.get('receiptFooter').trim(),
+          });
+          document.getElementById('nav-brand-name').textContent = StorageService.getSettings().brandName;
+          Utils.showToast('Settings saved successfully.', 'success');
+        });
+
+        document.getElementById('btn-export-json').addEventListener('click', () => {
+          this.downloadFile(StorageService.exportAllJSON(), `medcore-pos-backup-${Utils.todayISO()}.json`, 'application/json');
+        });
+
+        document.getElementById('input-import-json').addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const reader = new FileReader();
+          reader.onload = (ev) => {
+            try {
+              StorageService.importAllJSON(ev.target.result);
+              Utils.showToast('Backup restored successfully!', 'success');
+              AppRouter.updateNavBadges();
+              this.render();
+            } catch (err) {
+              Utils.showToast(err.message, 'error');
+            }
+          };
+          reader.readAsText(file);
+        });
+
+        document.getElementById('btn-export-products-csv').addEventListener('click', () => {
+          const rows = StorageService.getProducts().map((p) => ({
+            ID: p.id, Name: p.name, SKU: p.sku, Barcode: p.barcode, Category: p.category,
+            PurchasePrice: p.purchasePrice, SellingPrice: p.sellingPrice, Quantity: p.quantity, MinStock: p.minStock, ExpiryDate: p.expiryDate
+          }));
+          this.downloadCSV(rows, `medcore-products-${Utils.todayISO()}.csv`);
+        });
+
+        document.getElementById('btn-export-sales-csv').addEventListener('click', () => {
+          const rows = StorageService.getSales().map((s) => ({
+            SaleID: s.id, Date: s.createdAt, Customer: s.customerName, Subtotal: s.subtotal,
+            Discount: s.discount, Shipping: s.shipping, GrandTotal: s.grandTotal, PaymentMethod: s.paymentMethod, Paid: s.paidAmount, Balance: s.remainingBalance, Status: s.status
+          }));
+          this.downloadCSV(rows, `medcore-sales-${Utils.todayISO()}.csv`);
+        });
+
+        document.getElementById('btn-export-inventory-csv').addEventListener('click', () => {
+          const rows = StorageService.getInventoryMovements().map((m) => ({
+            MovementID: m.id, Date: m.date, Product: m.productName, SKU: m.sku, Type: m.type, Batch: m.batchNumber, PrevQty: m.previousQty, NewQty: m.newQty, Reason: m.reason
+          }));
+          this.downloadCSV(rows, `medcore-inventory-${Utils.todayISO()}.csv`);
+        });
+
+        document.getElementById('btn-reset-demo').addEventListener('click', () => {
+          AppRouter.openModal(`
+            <div class="p-6 space-y-4">
+              <h3 class="text-lg font-bold text-navy-800">Reset All Data to Factory Demo?</h3>
+              <p class="text-sm text-slate-600">This will overwrite current local records with the initial 10 medical supplies, sample customers, and seed sales.</p>
+              <div class="flex justify-end gap-2">
+                <button onclick="AppRouter.closeModal()" class="px-4 py-2 rounded-xl border border-slate-200 text-sm">Cancel</button>
+                <button id="confirm-reset-demo-btn" class="px-4 py-2 rounded-xl bg-red-600 text-white text-sm font-semibold">Yes, Reset Demo Data</button>
+              </div>
+            </div>
+          `);
+          document.getElementById('confirm-reset-demo-btn').addEventListener('click', () => {
+            StorageService.initSeedData(true);
+            CartModule.clear();
+            AppRouter.closeModal();
+            AppRouter.updateNavBadges();
+            Utils.showToast('Demo data restored.', 'success');
+            this.render();
+          });
+        });
+      },
+
+      downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+      },
+
+      downloadCSV(rows, filename) {
+        if (!rows || rows.length === 0) {
+          Utils.showToast('No records available to export.', 'warning');
+          return;
+        }
+        const headers = Object.keys(rows[0]);
+        const csvLines = [
+          headers.join(','),
+          ...rows.map((row) =>
+            headers.map((h) => `"${String(row[h] ?? '').replace(/"/g, '""')}"`).join(',')
+          ),
+        ];
+        this.downloadFile(csvLines.join('\n'), filename, 'text/csv;charset=utf-8;');
+      }
+    };
+
+    /**
+     * =========================================================================
+     * 12. APPLICATION ROUTER & SHELL CONTROLLER (AppRouter)
+     * =========================================================================
+     */
+    const AppRouter = {
+      currentRoute: 'pos',
+
+      init() {
+        StorageService.initSeedData(false);
+        CartModule.init();
+
+        const settings = StorageService.getSettings();
+        const brandEl = document.getElementById('nav-brand-name');
+        if (brandEl) brandEl.textContent = settings.brandName;
+
+        // Navigation clicks
+        document.querySelectorAll('.nav-btn').forEach((btn) => {
+          btn.addEventListener('click', () => {
+            this.navigate(btn.dataset.route);
+          });
+        });
+
+        // Modal backdrop click to close
+        const modalRoot = document.getElementById('modal-root');
+        modalRoot.addEventListener('click', (e) => {
+          if (e.target === modalRoot) this.closeModal();
+        });
+
+        // Global POS Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') {
+            this.closeModal();
+            return;
+          }
+          // Avoid hijacking inputs when typing normally unless F-keys
+          const tag = document.activeElement?.tagName;
+          const isTyping = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT';
+
+          if (e.key === 'F2' || (e.key === '/' && !isTyping)) {
+            e.preventDefault();
+            if (this.currentRoute !== 'pos') this.navigate('pos');
+            setTimeout(() => document.getElementById('pos-search-input')?.focus(), 50);
+          } else if (e.key === 'F4') {
+            e.preventDefault();
+            if (this.currentRoute !== 'pos') this.navigate('pos');
+            setTimeout(() => document.getElementById('pos-barcode-input')?.focus(), 50);
+          } else if (e.key === 'F8') {
+            e.preventDefault();
+            if (this.currentRoute !== 'pos') this.navigate('pos');
+            setTimeout(() => {
+              const paid = document.getElementById('pos-paid-input');
+              if (paid) {
+                paid.focus();
+                paid.select();
+              }
+            }, 50);
+          }
+        });
+
+        // Live Header Clock
+        const updateClock = () => {
+          const el = document.getElementById('live-clock');
+          if (el) {
+            el.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+          }
+        };
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        this.updateNavBadges();
+        this.navigate('pos');
+      },
+
+      navigate(route) {
+        this.currentRoute = route;
+        document.querySelectorAll('.nav-btn').forEach((btn) => {
+          const active = btn.dataset.route === route;
+          btn.classList.toggle('bg-medblue-600', active);
+          btn.classList.toggle('text-white', active);
+          btn.classList.toggle('shadow-sm', active);
+          btn.classList.toggle('text-slate-300', !active);
+          btn.classList.toggle('hover:bg-navy-700', !active);
+          btn.classList.toggle('hover:text-white', !active);
+        });
+
+        const routes = {
+          pos: () => POSModule.render(),
+          products: () => ProductsModule.render(),
+          inventory: () => InventoryModule.render(),
+          customers: () => CustomersModule.render(),
+          sales: () => SalesModule.render(),
+          reports: () => ReportsModule.render(),
+          settings: () => SettingsModule.render(),
+        };
+
+        (routes[route] || routes.pos)();
+      },
+
+      updateNavBadges() {
+        const products = StorageService.getProducts();
+        const alertCount = products.filter((p) => p.quantity <= p.minStock).length;
+        const badge = document.getElementById('nav-low-stock-badge');
+        if (badge) {
+          if (alertCount > 0) {
+            badge.textContent = alertCount;
+            badge.classList.remove('hidden');
+          } else {
+            badge.classList.add('hidden');
+          }
+        }
+      },
+
+      openModal(innerHTML) {
+        const root = document.getElementById('modal-root');
+        const content = document.getElementById('modal-content');
+        content.innerHTML = innerHTML;
+        root.classList.remove('hidden');
+        root.classList.add('flex');
+        if (window.lucide) lucide.createIcons({ nodes: [content] });
+      },
+
+      closeModal() {
+        const root = document.getElementById('modal-root');
+        root.classList.add('hidden');
+        root.classList.remove('flex');
+      }
+    };
+
+    // Bootstrap Application on DOM Ready
+    window.addEventListener('DOMContentLoaded', () => AppRouter.init());
+  </script>
+</body>
+</html>
